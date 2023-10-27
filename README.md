@@ -17,7 +17,7 @@ In addition to the "presentation" layer itself, the user can create routes, rate
 
 - Bootstrap: Responsible for creating a consistent and responsive user interface.
 
-- Google Maps API: Creating a map, visualizing geographic data and interacting with it.
+- OpenStreetMap: Creating a map, visualizing geographic data and interacting with it.
 
 - Leaflet: Creating a map, visualizing geographic data and interacting with it.
 
