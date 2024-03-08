@@ -1,0 +1,26 @@
+.pop-up{
+    width:400px;
+}
+.details-butt, .toRoute-butt{
+        width:120px;
+        height:50px;
+        background-color: #9ae673; /* Green */
+        border: none;
+        color: white;
+        padding: 8px 32px;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        margin-top:15px;
+        margin-bottom:10px;
+        border-radius:10px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+        font-weight:700;
+}
+.details-butt, .toRoute-butt{
+    background-color: #a8e887;
+}
+.details-butt{
+    float:right;
+}

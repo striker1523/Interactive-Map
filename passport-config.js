@@ -11,14 +11,14 @@ function initialize(passport) {
             }
 
             if (!row) {
-                return done(null, false, { message: 'No user with that email' });
+                return done(null, false, { message: 'No user with that email!' });
             }
 
             try {
                 if (await bcrypt.compare(password, row.password)) {
                     return done(null, row);
                 } else {
-                    return done(null, false, { message: 'Password incorrect' });
+                    return done(null, false, { message: 'Wrong password!' });
                 }
             } catch (err) {
                 return done(err);
@@ -29,12 +29,12 @@ function initialize(passport) {
     passport.use(new LocalStrategy({ usernameField: 'email' }, authenticateUser));
 
     passport.serializeUser((user, done) => {
-        done(null, user.id);
+        done(null, user.user_id);
     });
 
-    passport.deserializeUser((id, done) => {
-        const sql = 'SELECT * FROM user WHERE id = ?';
-        db.get(sql, [id], (err, row) => {
+    passport.deserializeUser((user_id, done) => {
+        const sql = 'SELECT * FROM user WHERE user_id = ?';
+        db.get(sql, [user_id], (err, row) => {
             if (err) {
                 return done(err);
             }

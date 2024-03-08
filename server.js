@@ -4,7 +4,8 @@ if (process.env.NODE_ENV !== 'production'){
 const express = require("express")
 const app = express()
 const bcrypt = require("bcrypt")                            // Szyfrowanie
-const passport = require('passport')
+const passport = require('passport')                        
+const db = require("./database.js")                         // Baza sqlite
 const flash = require('express-flash')
 const session = require('express-session')
 const methodOverride = require('method-override')
@@ -12,7 +13,6 @@ const methodOverride = require('method-override')
 // const fs = require('fs');
 
 const initializePassport = require('./passport-config.js')  // config haseł
-const db = require("./database.js")                         // Baza sqlite
 initializePassport(
     passport, 
     email => {
@@ -28,8 +28,8 @@ initializePassport(
 );
 
 // Ustawienia serwera
-// app.use(cors())
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser');          // 
+app.use(express.static(__dirname + '/public'));     // Obsługa CSS
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(flash());
@@ -41,6 +41,8 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
+// app.use(cors())
+
 app.set('view-engine', 'ejs');
 
 // Port serwera
@@ -51,12 +53,23 @@ app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
 });
 
-// Ustawienie endpointu dla głównej strony
+// --- Endpointy
+// Endpoint strony głównej
 app.get("/", checkAuthenticated, (req, res, next) => {
     res.render('index.ejs', {name: req.user.name})
 });
+// profile
+app.get("/profile", checkAuthenticated, (req, res, next) => {
+    res.render('profile.ejs')
+});
 
-// Endpointy
+app.post("/profile", checkAuthenticated, passport.authenticate('local',{
+    successRedirect: '/profile',
+    failureRedirect: '/',
+    failureFlash: true
+}))
+
+// Login
 app.get("/login", checkNotAuthenticated, (req, res, next) => {
     res.render('login.ejs')
 });
@@ -67,6 +80,7 @@ app.post("/login", checkNotAuthenticated, passport.authenticate('local',{
     failureFlash: true
 }))
 
+// Rejestracja
 app.get("/register", checkNotAuthenticated, (req, res, next) => {
     res.render('register.ejs')
 });
@@ -97,6 +111,7 @@ app.post("/register", checkNotAuthenticated, async (req, res, next) => {
     }
 });
 
+//Wylogowanie
 app.delete('/logout', (req, res, next) => {
     req.logOut(function(err) {
         if (err) {
@@ -106,6 +121,7 @@ app.delete('/logout', (req, res, next) => {
     });
 });
 
+// Redirect
 function checkAuthenticated(req, res, next){
     if (req.isAuthenticated()){
         return next()
@@ -114,13 +130,118 @@ function checkAuthenticated(req, res, next){
 }
 
 function checkNotAuthenticated(req, res, next){
+    if (req.originalUrl === '/profile') {
+        return next();
+    }
     if (req.isAuthenticated()){
         res.redirect('/')
     }
     next()
 }
 
-// Odpowiedź domyślna na żądania
+// Wyświetlanie wszystkich obiektów
+app.get("/api/objects", (req, res, next) => {
+    try {
+        var sql = 'SELECT * FROM objects';
+        db.all(sql, [], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                //console.log(rows); // check
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetlanie konkretnego obiektu
+app.get("/api/objects/:id", (req, res, next) => {
+    try {
+        const objectId = req.params.id;
+        var sql = 'SELECT * FROM objects WHERE object_id = ?';
+        db.get(sql, [objectId], (err, row) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!row) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(row); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetlanie bóstw konkretnego obiektu
+app.get("/api/objects/deities/:id", (req, res, next) => {
+    try {
+        const objectId = req.params.id;
+        var sql = 'SELECT d.name FROM deities d JOIN object_deities od ON d.deity_id = od.deity_id JOIN objects o ON od.object_id = o.object_id WHERE o.object_id = ?';
+        db.all(sql, [objectId], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows) {
+                res.status(404).json({name: 'Without a patron'});
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetlanie bez powtórzeń
+app.get("/api/distinct/:what/:from", (req, res, next) => {
+    try {
+        const sqlWhat = req.params.what;
+        const sqlFrom = req.params.from;
+        var sql = `SELECT DISTINCT ${sqlWhat} FROM ${sqlFrom}`;
+        db.all(sql, (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Nothing to show' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Wyświetlanie do filtrowania
+app.get("/api/objects/filters/:from/:what", (req, res, next) => {
+    try {
+        const sqlWhat = req.params.what;
+        const sqlFrom = req.params.from;
+        var sql = `SELECT object_id FROM objects WHERE ${sqlFrom} = '${sqlWhat}'`;
+        db.all(sql, (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Nothing to show' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Odpowiedź domyślna
 app.use(function(req, res){
     res.status(404);
 });

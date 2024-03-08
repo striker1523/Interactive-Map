@@ -1,5 +1,113 @@
-Hi <%= name %>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interactive-Map</title>
 
-<form action="/logout?_method=DELETE" method="POST">
-    <button type="submit"> Log Out </button>
-</form>
+    <!-- Style -->
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/css/index-style.css" rel="stylesheet" type="text/css">
+    <link href="/css/map.css" rel="stylesheet" type="text/css">
+    <link href="/css/checkbox.css" rel="stylesheet" type="text/css">
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+</head>
+
+<body>
+    <img id="oni_bcg" src="/assets/img/oni_bcg.png">
+    <!-- Logo & Profile -->
+    <h1 class="logo">Interactive Map <br> <a class="logo-move">of Japan</a></h1>
+    <a href="/profile" class="reglog-button-switch"><img src="/assets/img/user.png" class="profile-img" alt="Profile"></a>
+    <h2 class="greetings">Hi, <%= name %></h2>
+
+    <!-- Mapa & Filtry & Wyszukiwarka -->
+    <div class="map-section">
+        <input type="text" id="search-input" class="search-box" placeholder="Search">
+        <div class="filters-box">
+            <div class="filters-title-box">
+                <label for="filters-title" class="filters-title">Filters</label>
+            </div>
+            <label for="religion" id="religion-label"><b style="color:#f54b55;"><a href="#religion-nav">Religion:</a></b></label>
+            <div class="filter-box religion" id="religion-nav">
+                <ul id="filters-religion-ul"></ul>
+            </div>
+            <label for="type" id="type-label"><b style="color:#f54b55;"><a href="#type-nav">Type:</a></b></label>
+            <div class="filter-box type" id="type-nav">
+                <ul id="filters-type-ul"></ul>
+            </div>
+            <label for="era" id="era-label"><b style="color:#f54b55;"><a href="#era-nav">Era:</a></b></label>
+            <div class="filter-box era" id="era-nav">
+                <ul id="filters-era-ul"></ul>
+            </div>
+            <label for="prefecture" id="prefecture-label"><b style="color:#f54b55;"><a href="#prefecture-nav">Prefecture:</a></b></label>
+            <div class="filter-box prefecture" id="prefecture-nav">
+                <ul id="filters-prefecture-ul"></ul>
+            </div>
+            <label for="year" id="year-label"><b style="color:#f54b55;"><a href="#year-nav">Year:</a></b></label>
+            <div class="filter-box year" id="year-nav">
+                <div class="input-range-box">
+                    <input type="number" id="range-from" placeholder="From">
+                    <input type="number" id="range-to" placeholder="To">
+                </div>
+            </div>
+        </div>
+        <div id="map-id" class="map-box"></div>
+        <div class="route-box">
+            <label for="Routes-title" class="filters-title">Routes</label>
+        </div>
+    </div>
+
+    <!-- Opis -->
+    <div class="object-section">
+        <div class="object-name-box">
+            <label for="object-name" class="obj-name">Title</label>
+        </div>
+        <div class="object-desc-box">
+            <label for="object-description" class="object-desc">Description</label>
+        </div>
+        <div class="object-det-box">
+            <img src="/assets/img/placeholder.jpg" class="object-img">
+            <label for="object-details" class="object-det">
+                <ul class="object-det-list">
+                    <li id="type" class="object-det-list-item"><b style="color:#f54b55;">Type: </b></li>
+                    <li id="prefecture" class="object-det-list-item"><b style="color:#f54b55;">Prefecture: </b></li>
+                    <li id="religion" class="object-det-list-item"><b style="color:#f54b55;">Religion: </b></li>
+                    <li id="deities" class="object-det-list-item"><b style="color:#f54b55;">Deities: </b>
+                        <ul id="deities-list">
+                        </ul>
+                    </li>
+                    <li id="era" class="object-det-list-item"><b style="color:#f54b55;">Era: </b></li>
+                    <li id="year" class="object-det-list-item"><b style="color:#f54b55;">Year: </b></li>
+                </ul>
+            </label>
+        </div>
+        <div class="object-com-box">
+            <label for="object-comments" class="object-com">Comments</label>
+        </div>
+    </div>
+
+    <!-- Stopa -->
+    <div class="footer-box">
+        <a class="footer-author">
+            Interactive map of culture and monuments from ancient and modern Japanese mythology.
+            <br>
+            Author: Bartosz Sobański
+        </a>
+    </div>
+
+    <!-- <script src="scripts.js"></script> -->
+    <script src="/scripts/map.js"></script>
+    <script src="/scripts/loadFilters.js"></script>
+    <script src="/assets/fog/three.js"></script>
+    <script src="/assets/fog/fog.js"></script>
+    <script src="/assets/fog/vanta-settings.js"></script>
+</body>
+</html>

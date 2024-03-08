@@ -1,23 +1,42 @@
-Register
-<form action="/register" method="POST">
-    <div>
-        <label for="nickname">Nickname</label>
-        <input type="text" id="nickname" name="nickname" required>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interactive-Map</title>
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/css/reglog-style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body class="reglog-body">
+
+    <h1 class="logo">Interactive Map <br> <a class="logo-move">of Japan</a></h1>
+    <img id="oni_bcg" src="/assets/img/oni_bcg.png">
+    <div class="reglog-container">
+        <h1 class="reglog-title">Register</h1>
+
+        <form action="/register" method="POST" class="reglog-form-container">
+            <div>
+                <!-- <label for="nickname">Nickname</label> -->
+                <input type="text" id="nickname" name="nickname" placeholder="nickname" required>
+            </div>
+            <div>
+                <!-- <label for="email">Email</label> -->
+                <input type="email" id="email" name="email" placeholder="email" required>
+            </div>
+            <div>
+                <!-- <label for="password">Password</label> -->
+                <input type="password" id="password" name="password" placeholder="password" required>
+            </div>
+            <button type="submit"> Register </button>
+        </form>
+        <a class="reglog-subtitle">Already have an account?</a>
+        <a href="/login" class="reglog-button-switch">Login</a>
     </div>
-    <div>
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-    </div>
-    <div>
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit"> Register </button>
-</form>
-<a href="/login">Login</a>
-<!-- Skrypt JavaScript do obsługi przekierowania
-<script>
-    if (response.redirect) {
-    window.location.href = response.redirect;
-}
-</script> -->
+
+    <script src="/assets/fog/three.js"></script>
+    <script src="/assets/fog/fog.js"></script>
+    <script src="/assets/fog/vanta-settings.js"></script>
+</body>
+</html>
+

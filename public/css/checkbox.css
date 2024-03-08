@@ -1,0 +1,55 @@
+input[type=checkbox] + label {
+    display: block;
+    margin: 0.2em;
+    cursor: pointer;
+    padding: 0.2em;
+    margin-left:20px;
+}
+
+input[type=checkbox] {
+    display: none;
+}
+
+input[type=checkbox] + label:before {
+    content: "\2714";
+    border: 0.1em solid #fafafa;
+    border-radius: 0.2em;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    padding-left: 0.2em;
+    padding-bottom: 0.3em;
+    margin-right: 0.2em;
+    vertical-align: bottom;
+    color: transparent;
+    transition: .2s;
+}
+input[type=checkbox]:checked + label:before {
+    background-color: #f54b55;
+    border-color: #f54b55;
+    color: #fafafa;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+display: block;
+margin: 0.2em;
+cursor: pointer;
+padding: 0.2em;
+margin-left:20px;
+border: 0.1em solid #fafafa;
+background-color:rgba(0, 0, 0, 0.2);
+color:#fafafa;
+border-radius: 0.2em;
+display: inline-block;
+width: 4em;
+height: 1.2em;
+padding-left: 0.2em;
+padding-bottom: 0.3em;
+margin-right: 0.2em;
+transition: .2s;
+}
