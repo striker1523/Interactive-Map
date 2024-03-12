@@ -1,0 +1,34 @@
+.comment-ul{
+    list-style-type: none;
+}
+#comment-li{
+    margin-left:-40px;
+}
+.comment-box{
+    border:1px solid red;
+    border-radius:3px;
+    width:100%;
+    height:75px;
+    margin-bottom:10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.comment-box::-webkit-scrollbar {
+    display: none;
+    }
+.comment-name{
+    margin:5px;
+    float:left;
+    font-weight:700;
+}
+.comment-date{
+    margin:5px;
+    float:right;
+    font-weight:700;
+}
+.comment-content{
+    margin:5px;
+    font-size:13px;
+}

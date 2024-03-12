@@ -145,6 +145,50 @@ function displayObjectsOnMap(map) {
                                     });
                                 })
                                 .catch(error => console.error(error));      
+
+                                // Wyświetlenie komentarzy
+                                fetch(`api/comments/${objectID}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(response => {
+                                    if (!response.ok) throw new Error('cojes5');
+                                    return response.json();
+                                })
+                                .then(comms => {
+                                    const comment_list = document.getElementById(`comment-list`);
+                                    while (comment_list.firstChild) {
+                                        comment_list.removeChild(comment_list.firstChild);
+                                    }
+                                    comms.forEach(e => {
+                                        const listItem = document.createElement('li');
+                                        const divbox = document.createElement('div');
+                                        const span_name = document.createElement('span');
+                                        const span_date = document.createElement('span');
+                                        const brl = document.createElement('br');
+                                        const span_content = document.createElement('span');
+                                        listItem.id = 'comment-li'
+                                        divbox.className = 'comment-box';
+                                        span_name.className = 'comment-name';
+                                        span_date.className = 'comment-date';
+                                        span_content.className = 'comment-content';
+
+                                        span_name.textContent = `${e.name}`;
+                                        span_date.textContent = `${e.date}`;
+                                        span_content.textContent = `${e.content}`;
+
+                                        divbox.appendChild(span_name);
+                                        divbox.appendChild(span_date);
+                                        divbox.appendChild(brl);
+                                        divbox.appendChild(span_content);
+                                        listItem.appendChild(divbox);
+                                        comment_list.appendChild(listItem);
+                                    });
+                                })
+                                .catch(error => console.error(error));      
+
                             })
                             .catch(error => console.error(error));
                         });
@@ -226,4 +270,34 @@ window.addEventListener('load', () => {
             handleCheckboxChange(checkbox);
         });
     });
+
+    // Funkcja do filtrowania po roku
+    function handleInput_yearChange(input) {
+        const from = input.id;
+        fetch(`/api/objects/filters/${from}/${what}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+
+        })
+        .catch(error => {
+            console.error('There was a problem with your fetch operation:', error);
+        });
+    }
+
+    // Pobranie inputów lat do filtrów
+    const year_from = document.getElementById('range-from');
+    input.addEventListener('change', () => {
+        handleInput_yearChange(input);
+    });
+    const year_to = document.getElementById('range-to');
+    input.addEventListener('change', () => {
+        handleInput_yearChange(input);
+    });
+
+
 });

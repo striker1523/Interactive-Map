@@ -157,12 +157,32 @@ app.get("/api/objects", (req, res, next) => {
     }
 });
 
-// Wyświetlanie konkretnego obiektu
+// Wyświetlanie konkretnego obiektu po id
 app.get("/api/objects/:id", (req, res, next) => {
     try {
         const objectId = req.params.id;
         var sql = 'SELECT * FROM objects WHERE object_id = ?';
         db.get(sql, [objectId], (err, row) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!row) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(row); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetlanie id obiektu po nazwie
+app.get("/api/objects/:name", (req, res, next) => {
+    try {
+        const objectName = req.params.name;
+        var sql = 'SELECT object_id FROM objects WHERE name = ?';
+        db.get(sql, [objectName], (err, row) => {
             if (err) {
                 console.error(err);
                 res.status(500).json({ error: 'Internal server error' });
@@ -236,6 +256,56 @@ app.get("/api/objects/filters/:from/:what", (req, res, next) => {
             }
         });
     } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Komentarze
+app.get("/api/comments/:obj", (req, res, next) => {
+    try {
+        const sqlObj = req.params.obj;
+        var sql = 'SELECT u.name, c.content, c.date FROM user u JOIN comments c ON c.user_id = u.user_id JOIN objects o ON c.object_id = o.object_id WHERE o.object_id = ?';
+        db.all(sql, [sqlObj], (err, row) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!row) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(row); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Endpoint do filtrowania po roku
+app.get("/api/objects/filters/year/:fr/:to", (req, res, next) => {
+    try {
+        const sqlfr = parseInt(req.params.fr);
+        const sqlto = parseInt(req.params.to);
+        
+        // Walidacja danych wejściowych
+        if (isNaN(sqlfr) || isNaN(sqlto)) {
+            res.status(400).json({ error: 'Invalid input' });
+            return;
+        }
+
+        // Zapytanie SQL z parametrami
+        var sql = `SELECT object_id FROM objects WHERE year BETWEEN ? AND ?`;
+        db.all(sql, [sqlfr, sqlto], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Nothing to show' });
+            } else {
+                res.json(rows);
+            }
+        });
+    } catch(err) {
         console.error(err);
         res.status(500).json({ error: 'Internal server error' });
     }
