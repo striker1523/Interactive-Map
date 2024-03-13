@@ -1,7 +1,24 @@
 // Tablica na wszystkie markery
-const markers = new Array();
-const visibleMarkers = new Array();
+let markers = [];
 
+// Tablice na checkboxy do filtrów
+let checkboxTypes = [];
+let checkboxTypesValues = [];
+let checkboxReligions = [];
+let checkboxReligionsValues = [];
+let checkboxEras = [];
+let checkboxErasValues = [];
+let checkboxPrefectures = [];
+let checkboxPrefecturesValues = [];
+
+// Input wyszukiwarki
+let search_bar = document.getElementById('search-input');
+
+//
+
+// ---------------------------------------- //
+
+// Funkcja do zmiany nulli na - 
 function replaceNullsWithDash(obj) {
     for (var key in obj) {
       if (obj[key] === null) {
@@ -12,14 +29,124 @@ function replaceNullsWithDash(obj) {
     }
 }
 
+// Funkcja do ukrywania markerów na mapie
 function hideMarker(marker, map) {
-    map.removeLayer(markers[marker]);
+    if (map.hasLayer(markers[marker])) {
+        map.removeLayer(markers[marker]);
+    }
 }
 
+// Funkcja do pokazywania markerów na mapie
 function showMarker(marker, map) {
-    map.addLayer(markers[marker]);
+    if (!map.hasLayer(markers[marker])) {
+        map.addLayer(markers[marker]);
+    }
 }
 
+// Funkcja do uzupełniania tablic na filtry
+function addFilter(column, value){
+    if (column === "type"){
+        checkboxTypes.push(column);
+        checkboxTypesValues.push(value);
+    }
+    else if (column === "religion"){
+        checkboxReligions.push(column);
+        checkboxReligionsValues.push(value);
+    }
+    else if (column === "era"){
+        checkboxEras.push(column);
+        checkboxErasValues.push(value);
+    }
+    else if (column === "prefecture"){
+        checkboxPrefectures.push(column);
+        checkboxPrefecturesValues.push(value);
+    }else{}
+}
+
+// Funkcja do usuwania z tablicy filtru
+function removeFilter(column, value){
+    if (column === "type"){
+        const index = checkboxTypesValues.indexOf(value);
+        if (index !== -1) {
+            checkboxTypes.splice(index, 1);
+            checkboxTypesValues.splice(index, 1);
+        }
+    }
+    else if (column === "religion"){
+        const index = checkboxReligionsValues.indexOf(value);
+        if (index !== -1) {
+            checkboxReligions.splice(index, 1);
+            checkboxReligionsValues.splice(index, 1);
+        }
+    }
+    else if (column === "era"){
+        const index = checkboxErasValues.indexOf(value);
+        if (index !== -1) {
+            checkboxEras.splice(index, 1);
+            checkboxErasValues.splice(index, 1);
+        }
+    }
+    else if (column === "prefecture"){
+        const index = checkboxPrefecturesValues.indexOf(value);
+        if (index !== -1) {
+            checkboxPrefectures.splice(index, 1);
+            checkboxPrefecturesValues.splice(index, 1);
+        }
+    }
+}
+
+// Funkcja do uzupełniania SQL o filtry
+function addSqlFilters(from, to, search){
+    const whereConditions = [];
+    if (checkboxTypesValues.length > 0) {
+        whereConditions.push(`o.Type IN (${checkboxTypesValues.map(value => `'${value}'`).join(',')})`);
+    }
+    if (checkboxReligionsValues.length > 0) {
+        whereConditions.push(`o.Religion IN (${checkboxReligionsValues.map(value => `'${value}'`).join(',')})`);
+    }
+    if (checkboxErasValues.length > 0) {
+        whereConditions.push(`o.Era IN (${checkboxErasValues.map(value => `'${value}'`).join(',')})`);
+    }
+    if (checkboxPrefecturesValues.length > 0) {
+        whereConditions.push(`o.Prefecture IN (${checkboxPrefecturesValues.map(value => `'${value}'`).join(',')})`);
+    }
+    if (from !== undefined && to !== undefined){
+        whereConditions.push(`(o.year BETWEEN ${from} AND ${to} OR o.year IS NULL)`);
+    }
+    if (search_bar.value.length > 0){
+        whereConditions.push(`
+        o.name LIKE '%${search}%' OR 
+        o.religion LIKE '%${search}%' OR 
+        o.type LIKE '%${search}%' OR 
+        o.era LIKE '%${search}%' OR 
+        o.year LIKE '%${search}%' OR 
+        o.prefecture LIKE '%${search}%' OR 
+        o.postal_code LIKE '%${search}%' OR 
+        o.municipality LIKE '%${search}%' OR 
+        o.subdivision LIKE '%${search}%' OR 
+        o.apartment LIKE '%${search}%' OR 
+        o.description LIKE '%${search}%' OR 
+        d.name LIKE '%${search}%' OR 
+        d.description LIKE '%${search}%' OR 
+        d.[group] LIKE '%${search}%'`);
+    }
+    const conditions = whereConditions.join(' AND ');
+    console.log(conditions);
+    console.log(markers.length);
+    const encodedConditions = encodeURIComponent(conditions);
+    return encodedConditions;
+}
+
+// Funkcja do uzupełniania lat do filtrów
+function yearChangeForFilters(){
+    let y_from = document.getElementById('range-from').value;
+    let y_to = document.getElementById('range-to').value;
+    y_from = (y_from === '') ? 0 : y_from; // if empty = 0
+    y_to = (y_to === '') ? 10000 : y_to;  // if empty = 10000
+    return [y_from, y_to];
+}
+
+// Funkcja do stworzenia wszystkich obiektów i ich danych
 function displayObjectsOnMap(map) {
     fetch('/api/objects')
         .then(response => response.json())
@@ -28,7 +155,6 @@ function displayObjectsOnMap(map) {
             //console.log(data);
             data.forEach(row => {
                 const { object_id, name, religion, type, year, prefecture, postal_code, municipality, subdivision, apartment, Latitude, Longitude } = row;
-
                 let iconType;
                 switch (type) {
                     case 'Shrine':
@@ -210,7 +336,7 @@ window.addEventListener('load', () => {
     });
 
     //Wyświetlanie bazowej mapy
-    const map = L.map('map-id').setView([36.23730702442495, 138.5969055419427], 7);
+    const map = L.map('map-id').setView([36.239368, 137.1976891], 5);
 
     const mainLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
         minZoom: 3,
@@ -223,47 +349,50 @@ window.addEventListener('load', () => {
     displayObjectsOnMap(map);
 
     // Funkcja do obsługi zmiany stanu checkboxa
-    function handleCheckboxChange(checkbox) {
-        const what = checkbox.id;
-        const from = checkbox.className;
-        fetch(`/api/objects/filters/${from}/${what}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Sprawdź, czy stan checkboxa się zmienił
-            const isChecked = checkbox.checked;
-            data.forEach(item => {
+    async function handleCheckboxChange(checkbox) {
+        const value = checkbox.id;
+        const column = checkbox.className;
+        // Uzupełnianie tablic o odpowiednie filtry
+        if (checkbox.checked) {
+            addFilter(column, value);
+        } else {
+            removeFilter(column, value);
+        }
+        
+        const [y_from, y_to] = yearChangeForFilters();
+        const conditions = addSqlFilters(y_from, y_to);
+        
+        try {
+            if (conditions.length > 0) {
+                const response = await fetch(`/api/objects/filters/${conditions}`);
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+    
+                const data = await response.json();
+    
                 for (let i = 0; i < markers.length; i++) {
                     hideMarker(i, map);
                 }
-                const index = visibleMarkers.indexOf(item.object_id);
-                if (isChecked && index === -1) {
-                    visibleMarkers.push(item.object_id);
-                } else if (!isChecked && index !== -1) {
-                    visibleMarkers.splice(index, 1);
-                }
-            });
-            // Pokaż lub ukryj markery na podstawie nowego stanu
-            visibleMarkers.forEach(e => {
-                showMarker(e-1, map);
-            });
-            // Jeśli wszystkie checkboxy zostały odznaczone, pokaż wszystkie markery
-            if (!Array.from(checkboxes).some(cb => cb.checked)) {
+    
+                data.forEach(item => {
+                    showMarker(item.object_id - 1, map);
+                });
+            } else {
                 for (let i = 0; i < markers.length; i++) {
                     showMarker(i, map);
                 }
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('There was a problem with your fetch operation:', error);
-        });
+            
+            for (let i = 0; i < markers.length; i++) {
+                hideMarker(i, map);
+            }
+        }
     }
-
-    // Pobranie wszystkich checkboxów
+    
     const checkboxes = document.querySelectorAll('.filter-box input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
@@ -272,32 +401,98 @@ window.addEventListener('load', () => {
     });
 
     // Funkcja do filtrowania po roku
-    function handleInput_yearChange(input) {
-        const from = input.id;
-        fetch(`/api/objects/filters/${from}/${what}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+    async function handleInput_yearChange() {
+        const [y_from, y_to] = yearChangeForFilters();
+        const conditions = addSqlFilters(y_from, y_to);
+        
+        try {
+            if (conditions.length > 0) {
+                const response = await fetch(`/api/objects/filters/${conditions}`);
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+    
+                const data = await response.json();
+    
+                for (let i = 0; i < markers.length; i++) {
+                    hideMarker(i, map);
+                }
+    
+                data.forEach(item => {
+                    showMarker(item.object_id - 1, map);
+                });
+            } else {
+                for (let i = 0; i < markers.length; i++) {
+                    showMarker(i, map);
+                }
             }
-            return response.json();
-        })
-        .then(data => {
-
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('There was a problem with your fetch operation:', error);
-        });
+            
+            for (let i = 0; i < markers.length; i++) {
+                hideMarker(i, map);
+            }
+        }
     }
 
     // Pobranie inputów lat do filtrów
     const year_from = document.getElementById('range-from');
-    input.addEventListener('change', () => {
-        handleInput_yearChange(input);
+    year_from.addEventListener('change', () => { handleInput_yearChange(); });
+    year_from.addEventListener('input', () => { //Walidacja
+        const rangeFromValue = parseFloat(year_from.value);
+        const rangeToValue = parseFloat(year_to.value);
+    
+        if (rangeToValue < rangeFromValue) {
+            year_from.value = rangeToValue-1;
+        }
     });
     const year_to = document.getElementById('range-to');
-    input.addEventListener('change', () => {
-        handleInput_yearChange(input);
+    year_to.addEventListener('change', () => { handleInput_yearChange(); });
+    year_to.addEventListener('input', () => { //Walidacja
+        const rangeFromValue = parseFloat(year_from.value);
+        const rangeToValue = parseFloat(year_to.value);
+    
+        if (rangeToValue < rangeFromValue) {
+            year_to.value = rangeFromValue+1;
+        }
     });
 
+    // Wyszukiwarka
+    async function handleSearch_barChange(value) {
+        const [y_from, y_to] = yearChangeForFilters();
+        const conditions = addSqlFilters(y_from, y_to, value);
+        
+        try {
+            if (conditions.length > 0) {
+                const response = await fetch(`/api/objects/filters/${conditions}`);
+                
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+    
+                const data = await response.json();
+    
+                for (let i = 0; i < markers.length; i++) {
+                    hideMarker(i, map);
+                }
+    
+                data.forEach(item => {
+                    showMarker(item.object_id - 1, map);
+                });
+            } else {
+                for (let i = 0; i < markers.length; i++) {
+                    showMarker(i, map);
+                }
+            }
+        } catch (error) {
+            console.error('There was a problem with your fetch operation:', error);
+            
+            for (let i = 0; i < markers.length; i++) {
+                hideMarker(i, map);
+            }
+        }
+    }
+    search_bar.addEventListener('change', () => { handleSearch_barChange(search_bar.value); });
 
 });

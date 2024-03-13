@@ -239,12 +239,11 @@ app.get("/api/distinct/:what/:from", (req, res, next) => {
     }
 });
 
-// Wyświetlanie do filtrowania
-app.get("/api/objects/filters/:from/:what", (req, res, next) => {
+// Filtry i wyszukiwarka
+app.get("/api/objects/filters/:whereConditions", (req, res, next) => {
     try {
-        const sqlWhat = req.params.what;
-        const sqlFrom = req.params.from;
-        var sql = `SELECT object_id FROM objects WHERE ${sqlFrom} = '${sqlWhat}'`;
+        const sqlConditions = req.params.whereConditions;
+        var sql = `SELECT o.object_id, o.name, o.religion, o.type, o.era, o.year, o.prefecture, o.postal_code, o.municipality, o.subdivision, o.apartment, o.Latitude, o.Longitude, o.description FROM objects o LEFT JOIN object_deities od ON o.object_id = od.object_id LEFT JOIN deities d ON d.deity_id = od.deity_id WHERE ${sqlConditions}`;
         db.all(sql, (err, rows) => {
             if (err) {
                 console.error(err);
@@ -278,36 +277,6 @@ app.get("/api/comments/:obj", (req, res, next) => {
         });
     } catch(err){
         console.error(err);
-    }
-});
-
-// Endpoint do filtrowania po roku
-app.get("/api/objects/filters/year/:fr/:to", (req, res, next) => {
-    try {
-        const sqlfr = parseInt(req.params.fr);
-        const sqlto = parseInt(req.params.to);
-        
-        // Walidacja danych wejściowych
-        if (isNaN(sqlfr) || isNaN(sqlto)) {
-            res.status(400).json({ error: 'Invalid input' });
-            return;
-        }
-
-        // Zapytanie SQL z parametrami
-        var sql = `SELECT object_id FROM objects WHERE year BETWEEN ? AND ?`;
-        db.all(sql, [sqlfr, sqlto], (err, rows) => {
-            if (err) {
-                console.error(err);
-                res.status(500).json({ error: 'Internal server error' });
-            } else if (!rows || rows.length === 0) {
-                res.status(404).json({ error: 'Nothing to show' });
-            } else {
-                res.json(rows);
-            }
-        });
-    } catch(err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
