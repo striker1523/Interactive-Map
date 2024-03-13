@@ -393,12 +393,15 @@ window.addEventListener('load', () => {
         }
     }
     
-    const checkboxes = document.querySelectorAll('.filter-box input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            handleCheckboxChange(checkbox);
+    setTimeout(() => {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        console.log(checkboxes.length);
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                handleCheckboxChange(event.target);
+            });
         });
-    });
+    }, 500); // Opóźnienie aby checkboxy się stworzyły
 
     // Funkcja do filtrowania po roku
     async function handleInput_yearChange() {
