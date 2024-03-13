@@ -4,7 +4,7 @@
 .details-butt, .toRoute-butt{
         width:120px;
         height:50px;
-        background-color: #9ae673; /* Green */
+        background-color: #f54b55; /* Green */
         border: none;
         color: white;
         padding: 8px 32px;
@@ -18,8 +18,8 @@
         cursor: pointer;
         font-weight:700;
 }
-.details-butt, .toRoute-butt{
-    background-color: #a8e887;
+.details-butt:hover, .toRoute-butt:hover{
+    background-color: #c62731;
 }
 .details-butt{
     float:right;

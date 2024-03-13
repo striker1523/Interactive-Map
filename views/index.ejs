@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,6 +11,7 @@
     <link href="/css/map.css" rel="stylesheet" type="text/css">
     <link href="/css/checkbox.css" rel="stylesheet" type="text/css">
     <link href="/css/comments.css" rel="stylesheet" type="text/css">
+    <link href="/css/routing.css" rel="stylesheet" type="text/css">
 
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -19,6 +20,10 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+
+     <!-- Leaflet routing -->
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
 
 </head>
 
@@ -69,10 +74,10 @@
     <!-- Opis -->
     <div class="object-section">
         <div class="object-name-box">
-            <label for="object-name" class="obj-name">Title</label>
+            <label for="object-name" class="obj-name"></label>
         </div>
         <div class="object-desc-box">
-            <label for="object-description" class="object-desc">Description</label>
+            <label for="object-description" class="object-desc"></label>
         </div>
         <div class="object-det-box">
             <img src="/assets/img/placeholder.jpg" class="object-img">
@@ -95,18 +100,18 @@
             <ul class="comment-ul" id="comment-list">
                 <li id="comment-li">
                     <div class="comment-box">
-                        <span class="comment-name">test</span>
-                        <span class="comment-date">08-03-2024</span>
+                        <span class="comment-name"></span>
+                        <span class="comment-date"></span>
                         <br><br>
-                        <span class="comment-content">Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum </span>
+                        <span class="comment-content"></span>
                     </div>
                 </li>
                 <li id="comment-li">
                     <div class="comment-box">
-                        <span class="comment-name">test</span>
-                        <span class="comment-date">08-03-2024</span>
+                        <span class="comment-name"></span>
+                        <span class="comment-date"></span>
                         <br><br>
-                        <span class="comment-content">Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum </span>
+                        <span class="comment-content"></span>
                     </div>
                 </li>
             </ul>
@@ -124,6 +129,8 @@
 
     <!-- <script src="scripts.js"></script> -->
     <script src="/scripts/map.js"></script>
+    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script src="/scripts/loadFilters.js"></script>
 </body>
 </html>

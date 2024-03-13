@@ -5,7 +5,7 @@
     margin-left:-40px;
 }
 .comment-box{
-    border:1px solid red;
+    border:1px solid rgba(255, 255, 255, 0.2);
     border-radius:3px;
     width:100%;
     height:75px;
@@ -19,11 +19,14 @@
     display: none;
     }
 .comment-name{
+    color:#f54b55;
     margin:5px;
+    font-size:18px;
     float:left;
     font-weight:700;
 }
 .comment-date{
+    color:#f54b55;
     margin:5px;
     float:right;
     font-weight:700;

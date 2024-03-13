@@ -14,9 +14,76 @@ let checkboxPrefecturesValues = [];
 // Input wyszukiwarki
 let search_bar = document.getElementById('search-input');
 
-//
+// Routing
+let routingControl;
+let waypointsTab = [
+    L.latLng(37.70690965, 138.8262160750562),
+    L.latLng(37.4564259, 139.84048439655868)
+];
 
 // ---------------------------------------- //
+// Funkcja do wyświetlania losowego obiektu w polu informacyjnym
+function showRandomObject(){
+    fetch(`api/randomobject`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('cojes5');
+        return response.json();
+    })
+    .then(data => {
+        replaceNullsWithDash(data);
+
+        //Przypisanie danych z bazy
+        const { object_id, image, name, religion, 
+            type, era, year, prefecture, description } = data;
+        const objectNameLabel = document.querySelector('.obj-name');
+        objectNameLabel.textContent = name;
+        const objectDescLabel = document.querySelector('.object-desc');
+        objectDescLabel.textContent = description;
+        const objectDetTypelabel = document.querySelector('#type');
+        objectDetTypelabel.innerHTML = '<b style="color:#f54b55;">Type: </b>' + type;
+        const objectDetPrefLabel = document.querySelector('#prefecture');
+        objectDetPrefLabel.innerHTML = '<b style="color:#f54b55;">Prefecture: </b>' + prefecture;
+        const objectDetRelLabel = document.querySelector('#religion');
+        objectDetRelLabel.innerHTML = '<b style="color:#f54b55;">Religion: </b>' + religion;
+        const objectDetEraLabel = document.querySelector('#era');
+        objectDetEraLabel.innerHTML = '<b style="color:#f54b55;">Era: </b>' + era;
+        const objectDetYearLabel = document.querySelector('#year');
+        objectDetYearLabel.innerHTML = '<b style="color:#f54b55;">Year: </b>' + year;
+
+        // Pobranie danych o bóstwach powiązanych z obiektem
+        fetch(`api/objects/deities/${object_id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('cojes5');
+            return response.json();
+        })
+        .then(deities => {
+            replaceNullsWithDash(deities);
+
+            // Delete poprzednich
+            const deitiesList = document.getElementById('deities-list');
+            while (deitiesList.firstChild) {
+                deitiesList.removeChild(deitiesList.firstChild);
+            }
+            deities.forEach(deity => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${deity.name}`;
+                deitiesList.appendChild(listItem);
+            });
+        })
+        .catch(error => console.error(error));      
+    })
+    .catch(error => console.error(error));
+}
 
 // Funkcja do zmiany nulli na - 
 function replaceNullsWithDash(obj) {
@@ -132,7 +199,7 @@ function addSqlFilters(from, to, search){
     }
     const conditions = whereConditions.join(' AND ');
     console.log(conditions);
-    console.log(markers.length);
+    console.log("markers length: " + markers.length);
     const encodedConditions = encodeURIComponent(conditions);
     return encodedConditions;
 }
@@ -318,6 +385,61 @@ function displayObjectsOnMap(map) {
                             })
                             .catch(error => console.error(error));
                         });
+
+                        const routeButton = e.popup._contentNode.querySelector('#toRoute');
+                        routeButton.addEventListener('click', function() {
+                            //Pobranie ID obiektu do tymczasowego diva
+                            const popupID = e.popup._content;
+                            const temp = document.createElement('div');
+                            temp.innerHTML = popupID;
+                            const objectID = temp.querySelector('#popupid').innerText;
+                            temp.remove();
+
+                            //Pobranie danych obiektu na podstawie ID
+                            fetch(`api/objects/${objectID}`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) throw new Error('cojes5');
+                                return response.json();
+                            })
+                            .then(data => {
+                                const { Latitude, Longitude } = data;
+                                waypointsTab.push(L.latLng(Latitude, Longitude));
+                                console.log(waypointsTab);
+                                if (routingControl){
+                                    map.removeControl(routingControl);
+                                }
+                                routingControl = setTimeout(() => {
+                                    routingControl = L.Routing.control({
+                                        router: new L.Routing.osrmv1({
+                                            language: 'en'
+                                          }),
+                                        formatter:  new L.Routing.Formatter({
+                                            language: 'en'
+                                        }),
+                                        language: 'en',
+                                        waypoints: waypointsTab,
+                                        collapsible: true,
+                                        createMarker: function() {},
+                                        draggableWaypoints: false,
+                                        fitSelectedRoutes: true,
+                                        addWaypoints: false,
+                                        routeWhileDragging: false,
+                                        useZoomParameter: false,
+                                        lineOptions: {
+                                            addWaypoints: false,
+                                            styles: [{ color: '#f54b55', weight: 3 }],
+                                            language: 'en'
+                                        },
+                                    }).addTo(map);
+                                }, 750);
+                            })
+                            .catch(error => console.error(error));
+                        });
                     });
                     markers.push(marker);
                     map.addLayer(markers[i]);
@@ -336,17 +458,53 @@ window.addEventListener('load', () => {
     });
 
     //Wyświetlanie bazowej mapy
-    const map = L.map('map-id').setView([36.239368, 137.1976891], 5);
+    const map = L.map('map-id').setView([36.239368, 137.1976891], 8);
 
-    const mainLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+    const mainLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
         minZoom: 3,
         maxZoom: 17,
-        attribution: '&copy; <a href="https://carto.com/">carto.com</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: 'Map data &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+        id: 'mapbox/dark-v10', // Możesz zmienić styl na inny, np. 'mapbox/outdoors-v11' lub 'mapbox/light-v10'
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1Ijoic3RyaWtlcjE1MjMiLCJhIjoiY2x0cHhvNXA3MDA3MDJxbzBqYnFid2tiYyJ9.JwFJBMgdXbOdK57foTIvaQ'
     });
     mainLayer.addTo(map);
 
+    //Dodanie trasy
+    setTimeout(() => {
+        routingControl = L.Routing.control({
+            formatter:  new L.Routing.Formatter({
+                language: 'en'
+            }),
+            country: 'en',
+            language: 'en',
+            waypoints: waypointsTab,
+            createMarker: function() {},
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            addWaypoints: false,
+            routeWhileDragging: false,
+            useZoomParameter: false,
+            lineOptions: {
+                addWaypoints: false,
+                styles: [{ color: '#f54b55', weight: 3 }],
+                language: 'en'
+            },
+        }).addTo(map);
+    }, 750);
+
+    // Trasa
+    // L.Routing.control({
+    //     waypoints: waypointsTab
+    //   }).addTo(map);
+
     //Wywołanie markerów na mapie
     displayObjectsOnMap(map);
+
+    //Wywołanie informacji o losowym obiekcie
+    showRandomObject();
+    // setTimeout(() => {showRandomObject();}, 750);
 
     // Funkcja do obsługi zmiany stanu checkboxa
     async function handleCheckboxChange(checkbox) {
@@ -395,13 +553,13 @@ window.addEventListener('load', () => {
     
     setTimeout(() => {
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        console.log(checkboxes.length);
+        console.log("Checkboxy: " + checkboxes.length);
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 handleCheckboxChange(event.target);
             });
         });
-    }, 500); // Opóźnienie aby checkboxy się stworzyły
+    }, 750); // Opóźnienie aby checkboxy się stworzyły
 
     // Funkcja do filtrowania po roku
     async function handleInput_yearChange() {

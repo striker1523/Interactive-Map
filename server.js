@@ -177,6 +177,25 @@ app.get("/api/objects/:id", (req, res, next) => {
     }
 });
 
+// Wyświetlanie losowego obiektu
+app.get("/api/randomobject", (req, res, next) => {
+    try {
+        var sql = 'SELECT * FROM objects ORDER BY RANDOM() LIMIT 1;';
+        db.get(sql, (err, row) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!row) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(row); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
 // Wyświetlanie id obiektu po nazwie
 app.get("/api/objects/:name", (req, res, next) => {
     try {

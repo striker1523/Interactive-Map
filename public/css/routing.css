@@ -1,0 +1,10 @@
+.leaflet-routing-container{
+    color:black;
+    font-size:8px;
+    max-width:150px;
+    background-color:#fafafa;
+}
+.leaflet-routing-container.leaflet-bar.leaflet-routing-collapsible.leaflet-control.leaflet-routing-container-hide{
+    width:40px;
+    height:40px;
+}
