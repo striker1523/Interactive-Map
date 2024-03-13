@@ -45,53 +45,61 @@ function showMarker(marker, map) {
 
 // Funkcja do uzupełniania tablic na filtry
 function addFilter(column, value){
-    if (column === "type"){
-        checkboxTypes.push(column);
-        checkboxTypesValues.push(value);
+    switch (column) {
+        case "type":
+            checkboxTypes.push(column);
+            checkboxTypesValues.push(value);
+            break;
+        case "religion":
+            checkboxReligions.push(column);
+            checkboxReligionsValues.push(value);
+            break;
+        case "era":
+            checkboxEras.push(column);
+            checkboxErasValues.push(value);
+            break;
+        case "prefecture":
+            checkboxPrefectures.push(column);
+            checkboxPrefecturesValues.push(value);
+            break;
+        default:
+            break;
     }
-    else if (column === "religion"){
-        checkboxReligions.push(column);
-        checkboxReligionsValues.push(value);
-    }
-    else if (column === "era"){
-        checkboxEras.push(column);
-        checkboxErasValues.push(value);
-    }
-    else if (column === "prefecture"){
-        checkboxPrefectures.push(column);
-        checkboxPrefecturesValues.push(value);
-    }else{}
 }
 
 // Funkcja do usuwania z tablicy filtru
 function removeFilter(column, value){
-    if (column === "type"){
-        const index = checkboxTypesValues.indexOf(value);
-        if (index !== -1) {
-            checkboxTypes.splice(index, 1);
-            checkboxTypesValues.splice(index, 1);
-        }
-    }
-    else if (column === "religion"){
-        const index = checkboxReligionsValues.indexOf(value);
-        if (index !== -1) {
-            checkboxReligions.splice(index, 1);
-            checkboxReligionsValues.splice(index, 1);
-        }
-    }
-    else if (column === "era"){
-        const index = checkboxErasValues.indexOf(value);
-        if (index !== -1) {
-            checkboxEras.splice(index, 1);
-            checkboxErasValues.splice(index, 1);
-        }
-    }
-    else if (column === "prefecture"){
-        const index = checkboxPrefecturesValues.indexOf(value);
-        if (index !== -1) {
-            checkboxPrefectures.splice(index, 1);
-            checkboxPrefecturesValues.splice(index, 1);
-        }
+    switch (column) {
+        case "type":
+            let index = checkboxTypesValues.indexOf(value);
+            if (index !== -1) {
+                checkboxTypes.splice(index, 1);
+                checkboxTypesValues.splice(index, 1);
+            }
+            break;
+        case "religion":
+            index = checkboxReligionsValues.indexOf(value);
+            if (index !== -1) {
+                checkboxReligions.splice(index, 1);
+                checkboxReligionsValues.splice(index, 1);
+            }
+            break;
+        case "era":
+            index = checkboxErasValues.indexOf(value);
+            if (index !== -1) {
+                checkboxEras.splice(index, 1);
+                checkboxErasValues.splice(index, 1);
+            }
+            break;
+        case "prefecture":
+            index = checkboxPrefecturesValues.indexOf(value);
+            if (index !== -1) {
+                checkboxPrefectures.splice(index, 1);
+                checkboxPrefecturesValues.splice(index, 1);
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -130,11 +138,7 @@ function addSqlFilters(from, to, search){
         d.description LIKE '%${search}%' OR 
         d.[group] LIKE '%${search}%'`);
     }
-    const conditions = whereConditions.join(' AND ');
-    console.log(conditions);
-    console.log(markers.length);
-    const encodedConditions = encodeURIComponent(conditions);
-    return encodedConditions;
+    return encodeURIComponent(whereConditions.join(' AND '));
 }
 
 // Funkcja do uzupełniania lat do filtrów
@@ -147,186 +151,134 @@ function yearChangeForFilters(){
 }
 
 // Funkcja do stworzenia wszystkich obiektów i ich danych
-function displayObjectsOnMap(map) {
-    fetch('/api/objects')
-        .then(response => response.json())
-        .then(data => {
-            replaceNullsWithDash(data);
-            //console.log(data);
-            data.forEach(row => {
-                const { object_id, name, religion, type, year, prefecture, postal_code, municipality, subdivision, apartment, Latitude, Longitude } = row;
-                let iconType;
-                switch (type) {
-                    case 'Shrine':
-                        iconType = '../assets/img/icons/icon_shrine.png';
-                        break;
-                    case 'Castle':
-                        iconType = '../assets/img/icons/icon_castle.png';
-                        break;
-                    case 'Temple':
-                        iconType = '../assets/img/icons/icon_temple.png';
-                        break;
-                    case 'Mausoleum':
-                        iconType = '../assets/img/icons/icon_mausoleum.png';
-                        break;
-                    default:
-                        iconType = '../assets/img/icons/icon_default.png';
-                }
-                var Icon = L.icon({
-                    iconUrl: iconType,
-                    shadowUrl: '../assets/img/icons/marker-shadow.png',
-                    iconSize:     [25, 41],
-                    shadowSize:   [29, 32],
-                    iconAnchor:   [12, 40],
-                    shadowAnchor: [10, 32], 
-                    popupAnchor:  [0, -35]
-                });
+// Funkcja do stworzenia wszystkich obiektów i ich danych
+async function displayObjectsOnMap(map) {
+    const response = await fetch('/api/objects');
+    const data = await response.json();
+    replaceNullsWithDash(data);
 
-                const popupContent =
-                    '<span style="font-weight: bold; color: #f54b55; font-size: 18px;">' + name +'</span><br>'+
-                    '<b>Address:</b> '+ apartment +', '+ subdivision +', '+ municipality +', '+ postal_code +', '+ prefecture +'<br>'+
-                    '<b>Religion:</b> '+ religion +'<br>'+
-                    '<b>Type:</b> '+ type +'<br>'+
-                    '<b>Year:</b> '+ year +'<br>'+
-                    '<button id="toRoute" class="toRoute-butt">Add to route</button>'+
-                    '<button id="details" class="details-butt">Details</button>'+
-                    '<span id="popupid" hidden>'+ object_id +'</span>';
+    const iconTypes = {
+        'Shrine': '../assets/img/icons/icon_shrine.png',
+        'Castle': '../assets/img/icons/icon_castle.png',
+        'Temple': '../assets/img/icons/icon_temple.png',
+        'Mausoleum': '../assets/img/icons/icon_mausoleum.png',
+        'default': '../assets/img/icons/icon_default.png'
+    };
 
-                const popup = L.popup({
-                    className: 'pop-up',
-                    autoPan: true,
-                    maxWidth:1000, 
-                    maxHeight:1000
-                }).setContent(popupContent);
+    data.forEach(row => {
+        const { object_id, name, religion, type, year, prefecture, postal_code, municipality, subdivision, apartment, Latitude, Longitude } = row;
 
-                let i = 0;
-                const marker = new L.marker([Latitude, Longitude], {icon: Icon}).addTo(map)
-                    .bindPopup(popup)
-                    .on('popupopen', function(e) {
-                        const detailsButton = e.popup._contentNode.querySelector('#details');
-                        detailsButton.addEventListener('click', function() {
+        const iconUrl = iconTypes[type] || iconTypes['default'];
 
-                            //Pobranie ID obiektu do tymczasowego diva
-                            const popupID = e.popup._content;
-                            const temp = document.createElement('div');
-                            temp.innerHTML = popupID;
-                            const objectID = temp.querySelector('#popupid').innerText;
-                            temp.remove();
-
-                            //Pobranie danych obiektu na podstawie ID
-                            fetch(`api/objects/${objectID}`, {
-                                method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            })
-                            .then(response => {
-                                if (!response.ok) throw new Error('cojes5');
-                                return response.json();
-                            })
-                            .then(data => {
-                                replaceNullsWithDash(data);
-
-                                //Przypisanie danych z bazy
-                                const { image, name, religion, 
-                                    type, era, year, prefecture, description } = data;
-                                const objectNameLabel = document.querySelector('.obj-name');
-                                objectNameLabel.textContent = name;
-                                const objectDescLabel = document.querySelector('.object-desc');
-                                objectDescLabel.textContent = description;
-                                const objectDetTypelabel = document.querySelector('#type');
-                                objectDetTypelabel.innerHTML = '<b style="color:#f54b55;">Type: </b>' + type;
-                                const objectDetPrefLabel = document.querySelector('#prefecture');
-                                objectDetPrefLabel.innerHTML = '<b style="color:#f54b55;">Prefecture: </b>' + prefecture;
-                                const objectDetRelLabel = document.querySelector('#religion');
-                                objectDetRelLabel.innerHTML = '<b style="color:#f54b55;">Religion: </b>' + religion;
-                                const objectDetEraLabel = document.querySelector('#era');
-                                objectDetEraLabel.innerHTML = '<b style="color:#f54b55;">Era: </b>' + era;
-                                const objectDetYearLabel = document.querySelector('#year');
-                                objectDetYearLabel.innerHTML = '<b style="color:#f54b55;">Year: </b>' + year;
-
-                                // Pobranie danych o bóstwach powiązanych z obiektem
-                                fetch(`api/objects/deities/${objectID}`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(response => {
-                                    if (!response.ok) throw new Error('cojes5');
-                                    return response.json();
-                                })
-                                .then(deities => {
-                                    replaceNullsWithDash(deities);
-
-                                    // Delete poprzednich
-                                    const deitiesList = document.getElementById('deities-list');
-                                    while (deitiesList.firstChild) {
-                                        deitiesList.removeChild(deitiesList.firstChild);
-                                    }
-                                    deities.forEach(deity => {
-                                        const listItem = document.createElement('li');
-                                        listItem.textContent = `${deity.name}`;
-                                        deitiesList.appendChild(listItem);
-                                    });
-                                })
-                                .catch(error => console.error(error));      
-
-                                // Wyświetlenie komentarzy
-                                fetch(`api/comments/${objectID}`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(response => {
-                                    if (!response.ok) throw new Error('cojes5');
-                                    return response.json();
-                                })
-                                .then(comms => {
-                                    const comment_list = document.getElementById(`comment-list`);
-                                    while (comment_list.firstChild) {
-                                        comment_list.removeChild(comment_list.firstChild);
-                                    }
-                                    comms.forEach(e => {
-                                        const listItem = document.createElement('li');
-                                        const divbox = document.createElement('div');
-                                        const span_name = document.createElement('span');
-                                        const span_date = document.createElement('span');
-                                        const brl = document.createElement('br');
-                                        const span_content = document.createElement('span');
-                                        listItem.id = 'comment-li'
-                                        divbox.className = 'comment-box';
-                                        span_name.className = 'comment-name';
-                                        span_date.className = 'comment-date';
-                                        span_content.className = 'comment-content';
-
-                                        span_name.textContent = `${e.name}`;
-                                        span_date.textContent = `${e.date}`;
-                                        span_content.textContent = `${e.content}`;
-
-                                        divbox.appendChild(span_name);
-                                        divbox.appendChild(span_date);
-                                        divbox.appendChild(brl);
-                                        divbox.appendChild(span_content);
-                                        listItem.appendChild(divbox);
-                                        comment_list.appendChild(listItem);
-                                    });
-                                })
-                                .catch(error => console.error(error));      
-
-                            })
-                            .catch(error => console.error(error));
-                        });
-                    });
-                    markers.push(marker);
-                    map.addLayer(markers[i]);
-                    i++;   
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching objects:', error);
+        var Icon = L.icon({
+            iconUrl: iconUrl,
+            shadowUrl: '../assets/img/icons/marker-shadow.png',
+            iconSize:     [25, 41],
+            shadowSize:   [29, 32],
+            iconAnchor:   [12, 40],
+            shadowAnchor: [10, 32], 
+            popupAnchor:  [0, -35]
         });
+
+        const popupContent =
+            `<span style="font-weight: bold; color: #f54b55; font-size: 18px;">${name}</span><br>` +
+            `<b>Address:</b> ${apartment}, ${subdivision}, ${municipality}, ${postal_code}, ${prefecture}<br>` +
+            `<b>Religion:</b> ${religion}<br>` +
+            `<b>Type:</b> ${type}<br>` +
+            `<b>Year:</b> ${year}<br>` +
+            `<button id="toRoute" class="toRoute-butt">Add to route</button>` +
+            `<button id="details" class="details-butt">Details</button>` +
+            `<span id="popupid" hidden>${object_id}</span>`;
+
+        const popup = L.popup({
+            className: 'pop-up',
+            autoPan: true,
+            maxWidth:1000, 
+            maxHeight:1000
+        }).setContent(popupContent);
+
+        const marker = L.marker([Latitude, Longitude], {icon: Icon}).addTo(map)
+            .bindPopup(popup)
+            .on('popupopen', function(e) {
+                const detailsButton = e.popup._contentNode.querySelector('#details');
+                detailsButton.addEventListener('click', async function() {
+                    const popupID = e.popup._content;
+                    const temp = document.createElement('div');
+                    temp.innerHTML = popupID;
+                    const objectID = temp.querySelector('#popupid').innerText;
+                    temp.remove();
+
+                    try {
+                        const objectResponse = await fetch(`api/objects/${objectID}`);
+                        if (!objectResponse.ok) throw new Error('cojes5');
+                        const objectData = await objectResponse.json();
+                        replaceNullsWithDash(objectData);
+
+                        const { image, name, religion, type, era, year, prefecture, description } = objectData;
+                        const objectNameLabel = document.querySelector('.obj-name');
+                        objectNameLabel.textContent = name;
+                        const objectDescLabel = document.querySelector('.object-desc');
+                        objectDescLabel.textContent = description;
+                        const objectDetTypelabel = document.querySelector('#type');
+                        objectDetTypelabel.innerHTML = `<b style="color:#f54b55;">Type: </b>${type}`;
+                        const objectDetPrefLabel = document.querySelector('#prefecture');
+                        objectDetPrefLabel.innerHTML = `<b style="color:#f54b55;">Prefecture: </b>${prefecture}`;
+                        const objectDetRelLabel = document.querySelector('#religion');
+                        objectDetRelLabel.innerHTML = `<b style="color:#f54b55;">Religion: </b>${religion}`;
+                        const objectDetEraLabel = document.querySelector('#era');
+                        objectDetEraLabel.innerHTML = `<b style="color:#f54b55;">Era: </b>${era}`;
+                        const objectDetYearLabel = document.querySelector('#year');
+                        objectDetYearLabel.innerHTML = `<b style="color:#f54b55;">Year: </b>${year}`;
+
+                        const deitiesResponse = await fetch(`api/objects/deities/${objectID}`);
+                        if (!deitiesResponse.ok) throw new Error('cojes5');
+                        const deitiesData = await deitiesResponse.json();
+                        replaceNullsWithDash(deitiesData);
+                        const deitiesList = document.getElementById('deities-list');
+                        deitiesList.innerHTML = '';
+                        deitiesData.forEach(deity => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `${deity.name}`;
+                            deitiesList.appendChild(listItem);
+                        });
+
+                        const commentsResponse = await fetch(`api/comments/${objectID}`);
+                        if (!commentsResponse.ok) throw new Error('cojes5');
+                        const commentsData = await commentsResponse.json();
+                        const commentList = document.getElementById('comment-list');
+                        commentList.innerHTML = '';
+                        commentsData.forEach(comment => {
+                            const listItem = document.createElement('li');
+                            const divBox = document.createElement('div');
+                            const spanName = document.createElement('span');
+                            const spanDate = document.createElement('span');
+                            const brl = document.createElement('br');
+                            const spanContent = document.createElement('span');
+                            listItem.id = 'comment-li';
+                            divBox.className = 'comment-box';
+                            spanName.className = 'comment-name';
+                            spanDate.className = 'comment-date';
+                            spanContent.className = 'comment-content';
+
+                            spanName.textContent = `${comment.name}`;
+                            spanDate.textContent = `${comment.date}`;
+                            spanContent.textContent = `${comment.content}`;
+
+                            divBox.appendChild(spanName);
+                            divBox.appendChild(spanDate);
+                            divBox.appendChild(brl);
+                            divBox.appendChild(spanContent);
+                            listItem.appendChild(divBox);
+                            commentList.appendChild(listItem);
+                        });
+                    } catch (error) {
+                        console.error(error);
+                    }
+                });
+            });
+
+        markers.push(marker);
+    });
 }
 
 window.addEventListener('load', () => {
