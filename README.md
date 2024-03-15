@@ -13,13 +13,15 @@ In addition to the "presentation" layer itself, the user can create routes, rate
 
 - Body-parser: Middleware for parsing request data in Express, allows handling client-submitted data such as JSON.
 
-- SQLite3: Stores data about objects and other relevant information for the operation of the application.
-
-- Bootstrap: Responsible for creating a consistent and responsive user interface.
-
-- OpenStreetMap: Creating a map, visualizing geographic data and interacting with it.
+- SQLite3: Stores data about objects, users and other relevant information for the operation of the application.
 
 - Leaflet: Creating a map, visualizing geographic data and interacting with it.
+
+- Mapbox: Creating layers on map, visualizing geographic data and interacting with it.
+  
+- Leaflet routing machine: Visualizing routes on map and interacting with it.
+
+- Nodemon: For development purposes.
 
 ## License:
 This project is licensed from MIT. Please refer to the LICENSE file for details.
