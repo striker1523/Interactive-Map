@@ -33,6 +33,9 @@
     <h1 class="logo">Interactive Map <br> <a class="logo-move">of Japan</a></h1>
     <a href="/profile" class="reglog-button-switch"><img src="/assets/img/user.png" class="profile-img" alt="Profile"></a>
     <h2 class="greetings">Hi, <%= name %></h2>
+    <input type="hidden" id="user-id" value="<%= user_id %>">
+    <input type="hidden" id="user-email" value="<%= email %>">
+    <input type="hidden" id="user-name" value="<%= name %>">
 
     <!-- Mapa & Filtry & Wyszukiwarka -->
     <div class="map-section">
@@ -57,11 +60,15 @@
             <div class="filter-box prefecture" id="prefecture-nav">
                 <ul id="filters-prefecture-ul"></ul>
             </div>
+            <label for="deity" id="deity-label"><b style="color:#f54b55;"><a href="#deity-nav">Deity:</a></b></label>
+            <div class="filter-box deity" id="deity-nav">
+                <ul id="filters-deity-ul"></ul>
+            </div>
             <label for="year" id="year-label"><b style="color:#f54b55;"><a href="#year-nav">Year:</a></b></label>
             <div class="filter-box year" id="year-nav">
                 <div class="input-range-box">
                     <input type="number" id="range-from" placeholder="From" value="0">
-                    <input type="number" id="range-to" placeholder="To" value="1968">
+                    <input type="number" id="range-to" placeholder="To" value="2024">
                 </div>
             </div>
         </div>
@@ -75,12 +82,17 @@
     <div class="object-section">
         <div class="object-name-box">
             <label for="object-name" class="obj-name"></label>
-        </div>
-        <div class="object-desc-box">
-            <label for="object-description" class="object-desc"></label>
+            <input type="hidden" id="obj-id" value="">
         </div>
         <div class="object-det-box">
             <img src="/assets/img/placeholder.jpg" class="object-img">
+            <div class="stars">
+                <img src="/assets/img/empty_star.png" class="star first">
+                <img src="/assets/img/empty_star.png" class="star second">
+                <img src="/assets/img/empty_star.png" class="star third">
+                <img src="/assets/img/empty_star.png" class="star fourth">
+                <img src="/assets/img/empty_star.png" class="star fifth">
+            </div>
             <label for="object-details" class="object-det">
                 <ul class="object-det-list">
                     <li id="type" class="object-det-list-item"><b style="color:#f54b55;">Type: </b></li>
@@ -95,42 +107,52 @@
                 </ul>
             </label>
         </div>
+        <div class="object-desc-box">
+            <label for="object-description" class="object-desc"></label>
+        </div>
         <div class="object-com-box">
-            <!-- <label for="object-comments" class="object-com">Comments</label> -->
             <ul class="comment-ul" id="comment-list">
-                <li id="comment-li">
-                    <div class="comment-box">
-                        <span class="comment-name"></span>
-                        <span class="comment-date"></span>
-                        <br><br>
-                        <span class="comment-content"></span>
-                    </div>
-                </li>
-                <li id="comment-li">
-                    <div class="comment-box">
-                        <span class="comment-name"></span>
-                        <span class="comment-date"></span>
-                        <br><br>
-                        <span class="comment-content"></span>
-                    </div>
-                </li>
             </ul>
+        </div>
+        <div class="add-comment" id="add-comment-id">
+            <form class="add-comment-form" id="add-comment-form-id">
+                <textarea class="add-comment-content" id="add-comment-content-id" placeholder="Type your comment..."></textarea>
+                <input type="submit" class="submit-new-comment" id="submit-new-comment-id" value="Add comment" disabled>
+                <input type="button" class="submit-modified-comment" id="submit-modified-comment-id" value="Modify comment" hidden>
+                <input type="button" class="cancel-modified-comment" id="cancel-modified-comment-id" value="Cancel" hidden>
+            </form>
+            <div class="user-rating">
+                <img src="assets/img/trashcan.png" class="delete-rating">
+                <div class="all-stars">
+                    <img src="/assets/img/empty_star.png" class="ustar first" data-rating="1">
+                    <img src="/assets/img/empty_star.png" class="ustar second" data-rating="2">
+                    <img src="/assets/img/empty_star.png" class="ustar third" data-rating="3">
+                    <img src="/assets/img/empty_star.png" class="ustar fourth" data-rating="4">
+                    <img src="/assets/img/empty_star.png" class="ustar fifth" data-rating="5">
+                </div>
+                <a id="user-rating-label-id" class="user-rating-label"></a>
+            </div>
         </div>
     </div>
 
     <!-- Stopa -->
     <div class="footer-box">
-        <a class="footer-author">
+        <span class="footer-author">
             Interactive map of culture and monuments from ancient and modern Japanese mythology.
             <br>
             Author: Bartosz Sobański
-        </a>
+        </span>
     </div>
 
     <!-- <script src="scripts.js"></script> -->
-    <script src="/scripts/map.js"></script>
     <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="/scripts/map.js"></script>
+    <script src="/scripts/rating.js"></script>
+    <script src="/scripts/objectRandom.js"></script>
+    <script src="/scripts/commentHandlers.js"></script>
+    <script src="/scripts/object.js"></script>
+    <script src="/scripts/newComment.js"></script>
     <script src="/scripts/loadFilters.js"></script>
 </body>
 </html>

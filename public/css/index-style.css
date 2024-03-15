@@ -1,7 +1,6 @@
 a { 
     color: inherit;
     text-decoration: none;
-    cursor: pointer;
 } 
 .profile-img{
     padding:20px;
@@ -82,10 +81,13 @@ a {
     height:155px;
 }
 .filter-box.era:target {
-    height:385px;
+    height:350px;
 }
 .filter-box.prefecture:target {
-    height:400px;
+    height:350px;
+}
+.filter-box.deity:target {
+    height:350px;
 }
 .input-range-box{
     width:100%;
@@ -94,7 +96,7 @@ a {
 .filter-box.year:target {
     height:50px;
 }
-#filters-religion-ul, #filters-type-ul, #filters-era-ul, #filters-prefecture-ul{
+#filters-religion-ul, #filters-type-ul, #filters-era-ul, #filters-prefecture-ul, #filters-deity-ul{
     list-style-type: none;
 }
 .filters-title-box{
@@ -135,16 +137,27 @@ a {
     color:#f54b55;
     font-family:tahoma;
     font-size:24px;
-    display: flex;
-    justify-content: center; 
-    padding-top:5px;
+    margin-left:10px;
 }
 .object-name-box{
-    width:100%;
-    height:40px;
+    width:calc(100% - 345px);
+    height:35px;
     border-radius:10px;
     background-color:rgba(0, 0, 0, 0.2);
     margin-bottom:10px;
+    padding-top:5px;
+    float:left;
+    display: flex;
+    justify-content: center;
+}
+.object-rating-box{
+    width:calc(100% - 545px);
+    height:35px;
+    border-radius:10px;
+    background-color:rgba(0, 0, 0, 0.2);
+    margin-bottom:10px;
+    padding-top:5px;
+    float:right;
 }
 .object-desc{
     color:#fafafa;
@@ -168,7 +181,7 @@ display: none;
 }
 .object-det-box{
     width:335px;
-    height:400px;
+    height:450px;
     border-radius:10px;
     background-color:rgba(0, 0, 0, 0.2);
     float:right;
@@ -176,14 +189,24 @@ display: none;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+.star.first, .star.second, .star.third, .star.fourth, .star.fifth{
+    width:25px;
+    height:25px;
+    margin:3px;
+}
+.stars{
+    display: flex;
+    justify-content: center;
+}
 .object-det-box::-webkit-scrollbar {
 display: none;
 }
 .object-img{
     width:250px;
     height:250px;
-    margin:10px;
-    margin-left:40px;
+    margin-left:45px;
+    border-radius:5px;
+    margin-top:10px;
 }
 .object-det{
     margin-left:40px;
@@ -210,6 +233,26 @@ display: none;
     list-style-type: none;
 }
 
+/* Trashcan */
+.delete-rating{
+    width:25px;
+    height:25px;
+    margin:3px;
+    float:right;
+}
+.delete-comment{
+    width:25px;
+    height:25px;
+    margin:3px;
+    float:right;
+}
+.edit-comment{
+    width:25px;
+    height:25px;
+    margin:3px;
+    float:right;
+}
+
 /* Footer Section */
 .footer-box{
     width:100%;
@@ -219,7 +262,10 @@ display: none;
     left: 0;
     padding: 10px;
     text-align: center;
+    text-decoration: none;
 }
 .footer-author{
     color:#fafafa;
+    opacity:0.2;
+    user-select: none;
 }

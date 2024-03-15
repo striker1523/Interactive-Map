@@ -56,7 +56,7 @@ app.listen(HTTP_PORT, () => {
 // --- Endpointy
 // Endpoint strony głównej
 app.get("/", checkAuthenticated, (req, res, next) => {
-    res.render('index.ejs', {name: req.user.name})
+    res.render('index.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email})
 });
 // profile
 app.get("/profile", checkAuthenticated, (req, res, next) => {
@@ -78,7 +78,7 @@ app.post("/login", checkNotAuthenticated, passport.authenticate('local',{
     successRedirect: '/',
     failureRedirect: '/login',
     failureFlash: true
-}))
+}));
 
 // Rejestracja
 app.get("/register", checkNotAuthenticated, (req, res, next) => {
@@ -117,6 +117,7 @@ app.delete('/logout', (req, res, next) => {
         if (err) {
             console.error(err);
         }
+        req.session.destroy();
         res.redirect('/login');
     });
 });
@@ -237,11 +238,12 @@ app.get("/api/objects/deities/:id", (req, res, next) => {
 });
 
 // Wyświetlanie bez powtórzeń
-app.get("/api/distinct/:what/:from", (req, res, next) => {
+app.get("/api/distinct/:what/:from/:order", (req, res, next) => {
     try {
         const sqlWhat = req.params.what;
         const sqlFrom = req.params.from;
-        var sql = `SELECT DISTINCT ${sqlWhat} FROM ${sqlFrom}`;
+        const sqlOrder = req.params.order;
+        var sql = `SELECT DISTINCT ${sqlWhat} FROM ${sqlFrom} ORDER BY ${sqlOrder} ASC`;
         db.all(sql, (err, rows) => {
             if (err) {
                 console.error(err);
@@ -279,19 +281,174 @@ app.get("/api/objects/filters/:whereConditions", (req, res, next) => {
     }
 });
 
-// Komentarze
+// Wyświetlanie komentarzy
 app.get("/api/comments/:obj", (req, res, next) => {
     try {
         const sqlObj = req.params.obj;
-        var sql = 'SELECT u.name, c.content, c.date FROM user u JOIN comments c ON c.user_id = u.user_id JOIN objects o ON c.object_id = o.object_id WHERE o.object_id = ?';
-        db.all(sql, [sqlObj], (err, row) => {
+        var sql = 'SELECT c.user_id, c.comment_id, c.object_id, u.name, c.content, c.date FROM user u JOIN comments c ON c.user_id = u.user_id JOIN objects o ON c.object_id = o.object_id WHERE o.object_id = ? ORDER BY date(c.date) DESC;';
+        db.all(sql, [sqlObj], (err, rows) => {
             if (err) {
                 console.error(err);
                 res.status(500).json({ error: 'Internal server error' });
-            } else if (!row) {
+            } else if (!rows || rows.length === 0) {
                 res.status(404).json({ error: 'Object not found' });
             } else {
-                res.json(row); // JSON
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Dodanie komentarza
+app.post("/api/addcoment", (req, res, next) => {
+    try {
+        const { uID, oID, cContent, cDate } = req.body;
+        var sql = 'INSERT INTO comments (user_id, object_id, content, date) VALUES (?, ?, ?, ?)';
+        db.run(sql, [uID, oID, cContent, cDate], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Aktualizacja komentarza
+app.put("/api/update/comment", (req, res, next) => {
+    try {
+        const {cContent, cID, uID, oID} = req.body;
+        var sql = 'UPDATE comments SET content = ? WHERE comment_id = ? AND user_id = ? AND object_id = ?';
+        db.run(sql, [cContent, cID, uID, oID], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Usunięcie komentarza
+app.delete("/api/delete/comment", (req, res, next) => {
+    try {
+        const { cID, uID, oID } = req.body;
+        var sql = 'DELETE FROM comments WHERE comment_id = ? AND user_id = ? AND object_id = ?';
+        db.run(sql, [ cID, uID, oID ], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Dodanie oceny
+app.post("/api/addrating", (req, res, next) => {
+    try {
+        const { oID, uID, oRating } = req.body;
+        var sql = 'INSERT INTO ratings (object_id, user_id, rating) VALUES (?, ?, ?)';
+        db.run(sql, [oID, uID, oRating], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Usunięcie oceny
+app.delete("/api/delete/rating", (req, res, next) => {
+    try {
+        const { oID, uID } = req.body;
+        var sql = 'DELETE FROM ratings WHERE object_id = ? AND user_id = ?';
+        db.run(sql, [oID, uID], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Aktualizacja oceny
+app.post("/api/updaterating", (req, res, next) => {
+    try {
+        const { oID, uID, oRating } = req.body;
+        var sql = 'UPDATE ratings SET rating = ? WHERE object_id = ? AND user_id = ?';
+        db.run(sql, [oRating, oID, uID], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Wyświetl wszystkie oceny obiektu
+app.get("/api/rating/:uid/:objid", (req, res, next) => {
+    try {
+        const sqlU = req.params.uid;
+        const sqlO = req.params.objid;
+        var sql = `select user_id, rating from ratings where user_id = ${sqlU} AND object_id = ${sqlO}`;
+        db.all(sql, (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetl średnią ocen obiektu
+app.get("/api/objects/ratings/average/:obj", (req, res, next) => {
+    try {
+        const sqlObj = req.params.obj;
+        var sql = 'select AVG(rating) AS average_rating from ratings where object_id = ?';
+        db.all(sql, [sqlObj], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
             }
         });
     } catch(err){

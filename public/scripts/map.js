@@ -10,6 +10,8 @@ let checkboxEras = [];
 let checkboxErasValues = [];
 let checkboxPrefectures = [];
 let checkboxPrefecturesValues = [];
+let checkboxDeities = [];
+let checkboxDeitiesValues = [];
 
 // Input wyszukiwarki
 let search_bar = document.getElementById('search-input');
@@ -22,69 +24,6 @@ let waypointsTab = [
 ];
 
 // ---------------------------------------- //
-// Funkcja do wyświetlania losowego obiektu w polu informacyjnym
-function showRandomObject(){
-    fetch(`api/randomobject`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('cojes5');
-        return response.json();
-    })
-    .then(data => {
-        replaceNullsWithDash(data);
-
-        //Przypisanie danych z bazy
-        const { object_id, image, name, religion, 
-            type, era, year, prefecture, description } = data;
-        const objectNameLabel = document.querySelector('.obj-name');
-        objectNameLabel.textContent = name;
-        const objectDescLabel = document.querySelector('.object-desc');
-        objectDescLabel.textContent = description;
-        const objectDetTypelabel = document.querySelector('#type');
-        objectDetTypelabel.innerHTML = '<b style="color:#f54b55;">Type: </b>' + type;
-        const objectDetPrefLabel = document.querySelector('#prefecture');
-        objectDetPrefLabel.innerHTML = '<b style="color:#f54b55;">Prefecture: </b>' + prefecture;
-        const objectDetRelLabel = document.querySelector('#religion');
-        objectDetRelLabel.innerHTML = '<b style="color:#f54b55;">Religion: </b>' + religion;
-        const objectDetEraLabel = document.querySelector('#era');
-        objectDetEraLabel.innerHTML = '<b style="color:#f54b55;">Era: </b>' + era;
-        const objectDetYearLabel = document.querySelector('#year');
-        objectDetYearLabel.innerHTML = '<b style="color:#f54b55;">Year: </b>' + year;
-
-        // Pobranie danych o bóstwach powiązanych z obiektem
-        fetch(`api/objects/deities/${object_id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('cojes5');
-            return response.json();
-        })
-        .then(deities => {
-            replaceNullsWithDash(deities);
-
-            // Delete poprzednich
-            const deitiesList = document.getElementById('deities-list');
-            while (deitiesList.firstChild) {
-                deitiesList.removeChild(deitiesList.firstChild);
-            }
-            deities.forEach(deity => {
-                const listItem = document.createElement('li');
-                listItem.textContent = `${deity.name}`;
-                deitiesList.appendChild(listItem);
-            });
-        })
-        .catch(error => console.error(error));      
-    })
-    .catch(error => console.error(error));
-}
-
 // Funkcja do zmiany nulli na - 
 function replaceNullsWithDash(obj) {
     for (var key in obj) {
@@ -127,7 +66,12 @@ function addFilter(column, value){
     else if (column === "prefecture"){
         checkboxPrefectures.push(column);
         checkboxPrefecturesValues.push(value);
+    }
+    else if (column === "deity"){
+        checkboxDeities.push(column);
+        checkboxDeitiesValues.push(value);
     }else{}
+
 }
 
 // Funkcja do usuwania z tablicy filtru
@@ -160,6 +104,13 @@ function removeFilter(column, value){
             checkboxPrefecturesValues.splice(index, 1);
         }
     }
+    else if (column === "deity"){
+        const index = checkboxDeitiesValues.indexOf(value);
+        if (index !== -1) {
+            checkboxDeities.splice(index, 1);
+            checkboxDeitiesValues.splice(index, 1);
+        }
+    }
 }
 
 // Funkcja do uzupełniania SQL o filtry
@@ -176,6 +127,9 @@ function addSqlFilters(from, to, search){
     }
     if (checkboxPrefecturesValues.length > 0) {
         whereConditions.push(`o.Prefecture IN (${checkboxPrefecturesValues.map(value => `'${value}'`).join(',')})`);
+    }
+    if (checkboxDeitiesValues.length > 0) {
+        whereConditions.push(`d.name IN (${checkboxDeitiesValues.map(value => `'${value}'`).join(',')})`);
     }
     if (from !== undefined && to !== undefined){
         whereConditions.push(`(o.year BETWEEN ${from} AND ${to} OR o.year IS NULL)`);
@@ -219,9 +173,9 @@ function displayObjectsOnMap(map) {
         .then(response => response.json())
         .then(data => {
             replaceNullsWithDash(data);
-            //console.log(data);
             data.forEach(row => {
-                const { object_id, name, religion, type, year, prefecture, postal_code, municipality, subdivision, apartment, Latitude, Longitude } = row;
+                const { object_id, name, religion, type, year, prefecture, postal_code, 
+                    municipality, subdivision, apartment, Latitude, Longitude } = row;
                 let iconType;
                 switch (type) {
                     case 'Shrine':
@@ -270,133 +224,37 @@ function displayObjectsOnMap(map) {
                 const marker = new L.marker([Latitude, Longitude], {icon: Icon}).addTo(map)
                     .bindPopup(popup)
                     .on('popupopen', function(e) {
+                        // PRZYCISK DO WYŚWIETLANIA PEŁNYCH INFORMACJI
+                        const userID = document.getElementById('user-id').value;
                         const detailsButton = e.popup._contentNode.querySelector('#details');
                         detailsButton.addEventListener('click', function() {
-
-                            //Pobranie ID obiektu do tymczasowego diva
-                            const popupID = e.popup._content;
-                            const temp = document.createElement('div');
-                            temp.innerHTML = popupID;
-                            const objectID = temp.querySelector('#popupid').innerText;
-                            temp.remove();
-
-                            //Pobranie danych obiektu na podstawie ID
-                            fetch(`api/objects/${objectID}`, {
-                                method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            })
-                            .then(response => {
-                                if (!response.ok) throw new Error('cojes5');
-                                return response.json();
-                            })
+                            const { object_id } = row;
+                            readObjectDescription(object_id);
+                            readDeities(object_id);
+                            readComments(object_id);
+                            readRatings(object_id);
+                            readIfRatingIsAdded(userID, object_id)
                             .then(data => {
-                                replaceNullsWithDash(data);
+                                const stars = document.querySelectorAll('.all-stars img');
 
-                                //Przypisanie danych z bazy
-                                const { image, name, religion, 
-                                    type, era, year, prefecture, description } = data;
-                                const objectNameLabel = document.querySelector('.obj-name');
-                                objectNameLabel.textContent = name;
-                                const objectDescLabel = document.querySelector('.object-desc');
-                                objectDescLabel.textContent = description;
-                                const objectDetTypelabel = document.querySelector('#type');
-                                objectDetTypelabel.innerHTML = '<b style="color:#f54b55;">Type: </b>' + type;
-                                const objectDetPrefLabel = document.querySelector('#prefecture');
-                                objectDetPrefLabel.innerHTML = '<b style="color:#f54b55;">Prefecture: </b>' + prefecture;
-                                const objectDetRelLabel = document.querySelector('#religion');
-                                objectDetRelLabel.innerHTML = '<b style="color:#f54b55;">Religion: </b>' + religion;
-                                const objectDetEraLabel = document.querySelector('#era');
-                                objectDetEraLabel.innerHTML = '<b style="color:#f54b55;">Era: </b>' + era;
-                                const objectDetYearLabel = document.querySelector('#year');
-                                objectDetYearLabel.innerHTML = '<b style="color:#f54b55;">Year: </b>' + year;
-
-                                // Pobranie danych o bóstwach powiązanych z obiektem
-                                fetch(`api/objects/deities/${objectID}`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(response => {
-                                    if (!response.ok) throw new Error('cojes5');
-                                    return response.json();
-                                })
-                                .then(deities => {
-                                    replaceNullsWithDash(deities);
-
-                                    // Delete poprzednich
-                                    const deitiesList = document.getElementById('deities-list');
-                                    while (deitiesList.firstChild) {
-                                        deitiesList.removeChild(deitiesList.firstChild);
-                                    }
-                                    deities.forEach(deity => {
-                                        const listItem = document.createElement('li');
-                                        listItem.textContent = `${deity.name}`;
-                                        deitiesList.appendChild(listItem);
-                                    });
-                                })
-                                .catch(error => console.error(error));      
-
-                                // Wyświetlenie komentarzy
-                                fetch(`api/comments/${objectID}`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(response => {
-                                    if (!response.ok) throw new Error('cojes5');
-                                    return response.json();
-                                })
-                                .then(comms => {
-                                    const comment_list = document.getElementById(`comment-list`);
-                                    while (comment_list.firstChild) {
-                                        comment_list.removeChild(comment_list.firstChild);
-                                    }
-                                    comms.forEach(e => {
-                                        const listItem = document.createElement('li');
-                                        const divbox = document.createElement('div');
-                                        const span_name = document.createElement('span');
-                                        const span_date = document.createElement('span');
-                                        const brl = document.createElement('br');
-                                        const span_content = document.createElement('span');
-                                        listItem.id = 'comment-li'
-                                        divbox.className = 'comment-box';
-                                        span_name.className = 'comment-name';
-                                        span_date.className = 'comment-date';
-                                        span_content.className = 'comment-content';
-
-                                        span_name.textContent = `${e.name}`;
-                                        span_date.textContent = `${e.date}`;
-                                        span_content.textContent = `${e.content}`;
-
-                                        divbox.appendChild(span_name);
-                                        divbox.appendChild(span_date);
-                                        divbox.appendChild(brl);
-                                        divbox.appendChild(span_content);
-                                        listItem.appendChild(divbox);
-                                        comment_list.appendChild(listItem);
-                                    });
-                                })
-                                .catch(error => console.error(error));      
-
+                                var rating = data[0].rating;
+                                handleRating(stars, userID, object_id, rating);
                             })
-                            .catch(error => console.error(error));
+                            .catch(error => {
+                                console.error(error);
+                                const stars = document.querySelectorAll('.all-stars img');
+
+                                var rating = 0;
+                                handleRating(stars, userID, object_id, rating);
+                            });
                         });
 
+                        // PRZYCISK DO TWORZENIA TRASY
                         const routeButton = e.popup._contentNode.querySelector('#toRoute');
                         routeButton.addEventListener('click', function() {
-                            //Pobranie ID obiektu do tymczasowego diva
-                            const popupID = e.popup._content;
-                            const temp = document.createElement('div');
-                            temp.innerHTML = popupID;
-                            const objectID = temp.querySelector('#popupid').innerText;
-                            temp.remove();
 
                             //Pobranie danych obiektu na podstawie ID
-                            fetch(`api/objects/${objectID}`, {
+                            fetch(`api/objects/${object_id}`, {
                                 method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -464,7 +322,7 @@ window.addEventListener('load', () => {
         minZoom: 3,
         maxZoom: 17,
         attribution: 'Map data &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-        id: 'mapbox/dark-v10', // Możesz zmienić styl na inny, np. 'mapbox/outdoors-v11' lub 'mapbox/light-v10'
+        id: 'mapbox/dark-v10',
         tileSize: 512,
         zoomOffset: -1,
         accessToken: 'pk.eyJ1Ijoic3RyaWtlcjE1MjMiLCJhIjoiY2x0cHhvNXA3MDA3MDJxbzBqYnFid2tiYyJ9.JwFJBMgdXbOdK57foTIvaQ'
@@ -494,17 +352,11 @@ window.addEventListener('load', () => {
         }).addTo(map);
     }, 750);
 
-    // Trasa
-    // L.Routing.control({
-    //     waypoints: waypointsTab
-    //   }).addTo(map);
-
     //Wywołanie markerów na mapie
     displayObjectsOnMap(map);
 
     //Wywołanie informacji o losowym obiekcie
     showRandomObject();
-    // setTimeout(() => {showRandomObject();}, 750);
 
     // Funkcja do obsługi zmiany stanu checkboxa
     async function handleCheckboxChange(checkbox) {
@@ -551,6 +403,7 @@ window.addEventListener('load', () => {
         }
     }
     
+    // Opóźnienie aby checkboxy się stworzyły
     setTimeout(() => {
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         console.log("Checkboxy: " + checkboxes.length);
@@ -559,7 +412,7 @@ window.addEventListener('load', () => {
                 handleCheckboxChange(event.target);
             });
         });
-    }, 750); // Opóźnienie aby checkboxy się stworzyły
+    }, 750);
 
     // Funkcja do filtrowania po roku
     async function handleInput_yearChange() {
@@ -603,9 +456,11 @@ window.addEventListener('load', () => {
     year_from.addEventListener('input', () => { //Walidacja
         const rangeFromValue = parseFloat(year_from.value);
         const rangeToValue = parseFloat(year_to.value);
-    
-        if (rangeToValue < rangeFromValue) {
-            year_from.value = rangeToValue-1;
+        
+        if (rangeFromValue < 0) {
+            year_from.value = 0;
+        } else if (rangeToValue < rangeFromValue) {
+            year_from.value = rangeToValue - 1;
         }
     });
     const year_to = document.getElementById('range-to');
@@ -613,9 +468,11 @@ window.addEventListener('load', () => {
     year_to.addEventListener('input', () => { //Walidacja
         const rangeFromValue = parseFloat(year_from.value);
         const rangeToValue = parseFloat(year_to.value);
-    
-        if (rangeToValue < rangeFromValue) {
-            year_to.value = rangeFromValue+1;
+        
+        if (rangeToValue > 2024) {
+            year_to.value = 2024;
+        } else if (rangeToValue < rangeFromValue) {
+            year_to.value = rangeFromValue + 1;
         }
     });
 
@@ -655,5 +512,4 @@ window.addEventListener('load', () => {
         }
     }
     search_bar.addEventListener('change', () => { handleSearch_barChange(search_bar.value); });
-
 });

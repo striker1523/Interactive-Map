@@ -35,3 +35,104 @@
     margin:5px;
     font-size:13px;
 }
+.add-coment{
+    width: calc(100% - 20px);
+    height:70px;
+    border-radius:10px;
+    padding:10px;
+    border:1px solid rgba(255, 255, 255, 0.2);
+    margin-top:10px;
+    float:left;
+}
+.add-comment-content{
+    width: calc(100% - 25px);
+    height: 50px;
+    margin-top:10px;
+    margin-left:10px;
+    resize: none;
+    color:#fafafa;
+    outline: none; /* usuwa obramowanie po kliknięciu */
+    background-color: transparent; /* usuwa tło po kliknięciu */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.add-comment-content::-webkit-scrollbar {
+display: none;
+}
+.submit-new-comment{
+    width:140px;
+    height:30px;
+    background-color: #f54b55;
+    border: none;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    border-radius:10px;
+    margin-left:10px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    font-weight:700;
+    float:left;
+}
+.submit-new-comment:hover{
+    background-color: #c62731;
+}
+.submit-modified-comment{
+    width:140px;
+    height:30px;
+    background-color: #f54b55;
+    border: none;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    border-radius:10px;
+    margin-left:10px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    font-weight:700;
+    float:left;
+}
+.cancel-modified-comment:hover{
+    background-color: #c62731;
+}
+.cancel-modified-comment{
+    width:140px;
+    height:30px;
+    background-color: #f54b55;
+    border: none;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    border-radius:10px;
+    margin-left:10px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    font-weight:700;
+    float:left;
+}
+.submit-modified-comment:hover{
+    background-color: #c62731;
+}
+.ustar.first, .ustar.second, .ustar.third, .ustar.fourth, .ustar.fifth{
+    width:25px;
+    height:25px;
+    margin:3px;
+}
+.user-rating{
+    width:330px;
+    float:right;
+    margin-right:10px;
+}
+.all-stars{
+    float:right;
+}
+.user-rating-label{
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    font-family: Tahoma;
+    font-weight:700;
+    margin-right:10px;
+    float:right;
+    margin-top:7px;
+}
