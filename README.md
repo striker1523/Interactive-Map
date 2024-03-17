@@ -21,6 +21,8 @@ In addition to the "presentation" layer itself, the user can create routes, rate
   
 - Leaflet routing machine: Visualizing routes on map and interacting with it.
 
+- jQuery: Simplify front-end, mostly event handling and user interactions.
+
 - Nodemon: For development purposes.
 
 ## License:
