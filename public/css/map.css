@@ -1,7 +1,7 @@
 .pop-up{
-    width:400px;
+    width:440px;
 }
-.details-butt, .toRoute-butt{
+.details-butt, .delRoute-butt, .toRoute-butt{
         width:120px;
         height:50px;
         background-color: #f54b55;
@@ -17,6 +17,12 @@
         transition-duration: 0.4s;
         cursor: pointer;
         font-weight:700;
+}
+.delRoute-butt{
+    width:140px;
+}
+.leaflet-routing-alt h2 {
+    display: none;
 }
 .details-butt:hover, .toRoute-butt:hover{
     background-color: #c62731;

@@ -60,7 +60,7 @@ app.get("/", checkAuthenticated, (req, res, next) => {
 });
 // profile
 app.get("/profile", checkAuthenticated, (req, res, next) => {
-    res.render('profile.ejs')
+    res.render('profile.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email})
 });
 
 app.post("/profile", checkAuthenticated, passport.authenticate('local',{

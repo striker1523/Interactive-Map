@@ -93,12 +93,12 @@ display: none;
     float:left;
 }
 .cancel-modified-comment:hover{
-    background-color: #c62731;
+    background-color: rgba(255, 255, 255, 0.5);
 }
 .cancel-modified-comment{
     width:140px;
     height:30px;
-    background-color: #f54b55;
+    background-color: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
     text-align: center;
@@ -117,6 +117,9 @@ display: none;
     width:25px;
     height:25px;
     margin:3px;
+}
+.ustar.first:hover, .ustar.second:hover, .ustar.third:hover, .ustar.fourth:hover, .ustar.fifth:hover {
+    cursor: pointer;
 }
 .user-rating{
     width:330px;

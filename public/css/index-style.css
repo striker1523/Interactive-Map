@@ -110,17 +110,7 @@ a {
     font-family:tahoma;
     font-size:24px;
     justify-content: center;
-}
-.route-box{
-    width:860px;
-    height:75px;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:10px;
-    background-color:rgba(0, 0, 0, 0.2);
-    float:right;
-    display: flex;
-    justify-content: center; 
+    font-family:Tahoma;
 }
 /* Object Section */
 .object-section{
@@ -193,6 +183,7 @@ display: none;
     width:25px;
     height:25px;
     margin:3px;
+    
 }
 .stars{
     display: flex;
@@ -232,6 +223,76 @@ display: none;
     margin-bottom:15px;
     list-style-type: none;
 }
+/* Route itself*/
+.route-box {
+    width: 860px;
+    height: 75px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.route-box::-webkit-scrollbar {
+    width: 12px; /* szerokość paska przewijania */
+}
+
+.route-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1); /* kolor tła ścieżki przewijania */
+    border-radius: 10px; /* promień zaokrąglenia */
+}
+
+.route-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1); /* kolor paska przewijania */
+    border-radius: 10px; /* promień zaokrąglenia */
+}
+
+.route-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.1); /* kolor paska przewijania po najechaniu myszą */
+}
+.route-item {
+    flex: 0 0 auto;
+    position: relative;
+    width: 100px;
+    height: 60px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    float: left;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.route-item-name {
+    color: #fafafa;
+    font-size: 12px;
+    margin-top: 5px;
+    font-family: Tahoma;
+}
+
+.route-item-trash {
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    cursor: pointer;
+}
+
+.route-item-bcg {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 10%;
+    user-select: none;
+    pointer-events: none;
+}
 
 /* Trashcan */
 .delete-rating{
@@ -240,11 +301,17 @@ display: none;
     margin:3px;
     float:right;
 }
+.delete-rating:hover{
+    cursor: pointer;
+}
 .delete-comment{
     width:25px;
     height:25px;
     margin:3px;
     float:right;
+}
+.delete-comment:hover{
+    cursor: pointer;
 }
 .edit-comment{
     width:25px;
@@ -252,7 +319,9 @@ display: none;
     margin:3px;
     float:right;
 }
-
+.edit-comment:hover{
+    cursor: pointer;
+}
 /* Footer Section */
 .footer-box{
     width:100%;

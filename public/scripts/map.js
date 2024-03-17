@@ -18,9 +18,11 @@ let search_bar = document.getElementById('search-input');
 
 // Routing
 let routingControl;
+// let waypointsTab = [
+//     L.latLng(37.70690965, 138.8262160750562),
+//     L.latLng(37.4564259, 139.84048439655868)
+// ];
 let waypointsTab = [
-    L.latLng(37.70690965, 138.8262160750562),
-    L.latLng(37.4564259, 139.84048439655868)
 ];
 
 // ---------------------------------------- //
@@ -252,7 +254,6 @@ function displayObjectsOnMap(map) {
                         // PRZYCISK DO TWORZENIA TRASY
                         const routeButton = e.popup._contentNode.querySelector('#toRoute');
                         routeButton.addEventListener('click', function() {
-
                             //Pobranie danych obiektu na podstawie ID
                             fetch(`api/objects/${object_id}`, {
                                 method: 'GET',
@@ -266,35 +267,20 @@ function displayObjectsOnMap(map) {
                             })
                             .then(data => {
                                 const { Latitude, Longitude } = data;
+                                for (let i = 0; i < waypointsTab.length; i++) {
+                                    if (waypointsTab[i].lat === Latitude && waypointsTab[i].lng === Longitude) {
+                                        var popup = L.popup()
+                                        .setLatLng([Latitude, Longitude])
+                                        .setContent("Object already added.")
+                                        .openOn(map);
+                                        return;
+                                    }
+                                }
                                 waypointsTab.push(L.latLng(Latitude, Longitude));
                                 console.log(waypointsTab);
-                                if (routingControl){
-                                    map.removeControl(routingControl);
-                                }
-                                routingControl = setTimeout(() => {
-                                    routingControl = L.Routing.control({
-                                        router: new L.Routing.osrmv1({
-                                            language: 'en'
-                                          }),
-                                        formatter:  new L.Routing.Formatter({
-                                            language: 'en'
-                                        }),
-                                        language: 'en',
-                                        waypoints: waypointsTab,
-                                        collapsible: true,
-                                        createMarker: function() {},
-                                        draggableWaypoints: false,
-                                        fitSelectedRoutes: true,
-                                        addWaypoints: false,
-                                        routeWhileDragging: false,
-                                        useZoomParameter: false,
-                                        lineOptions: {
-                                            addWaypoints: false,
-                                            styles: [{ color: '#f54b55', weight: 3 }],
-                                            language: 'en'
-                                        },
-                                    }).addTo(map);
-                                }, 750);
+                                
+                                updateRoute(map);
+                                updateItemsInRoute(object_id, name, type, Latitude, Longitude, map);
                             })
                             .catch(error => console.error(error));
                         });
@@ -316,7 +302,7 @@ window.addEventListener('load', () => {
     });
 
     //Wyświetlanie bazowej mapy
-    const map = L.map('map-id').setView([36.239368, 137.1976891], 8);
+    window.map = L.map('map-id').setView([36.239368, 137.1976891], 8);
 
     const mainLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
         minZoom: 3,
@@ -330,27 +316,7 @@ window.addEventListener('load', () => {
     mainLayer.addTo(map);
 
     //Dodanie trasy
-    setTimeout(() => {
-        routingControl = L.Routing.control({
-            formatter:  new L.Routing.Formatter({
-                language: 'en'
-            }),
-            country: 'en',
-            language: 'en',
-            waypoints: waypointsTab,
-            createMarker: function() {},
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            addWaypoints: false,
-            routeWhileDragging: false,
-            useZoomParameter: false,
-            lineOptions: {
-                addWaypoints: false,
-                styles: [{ color: '#f54b55', weight: 3 }],
-                language: 'en'
-            },
-        }).addTo(map);
-    }, 750);
+    //title.textContent = "Route description: ";
 
     //Wywołanie markerów na mapie
     displayObjectsOnMap(map);

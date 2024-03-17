@@ -24,12 +24,17 @@ input[type=checkbox] + label:before {
     color: transparent;
     transition: .2s;
 }
+input[type=checkbox]:hover + label:hover{
+    padding-left:5px;
+}
+input[type=checkbox]:hover + label:before{
+    background-color:rgba(255, 255, 255, 0.2);
+}
 input[type=checkbox]:checked + label:before {
     background-color: #f54b55;
     border-color: #f54b55;
     color: #fafafa;
 }
-
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
