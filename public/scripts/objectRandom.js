@@ -19,6 +19,8 @@ function showRandomObject(){
             type, era, year, prefecture, description } = data;
         const objectIdHidden = document.getElementById('obj-id');
         objectIdHidden.value = object_id;
+        const objectImage = document.querySelector('.object-img');
+        objectImage.src = image;
         const objectNameLabel = document.querySelector('.obj-name');
         objectNameLabel.textContent = name;
         const objectDescLabel = document.querySelector('.object-desc');
@@ -42,11 +44,9 @@ function showRandomObject(){
             const stars = document.querySelectorAll('.all-stars img');
 
             var rating = data[0].rating;
-            console.log(rating);
             handleRating(stars, userID, object_id, rating);
         })
         .catch(error => {
-            console.error(error);
             const stars = document.querySelectorAll('.all-stars img');
 
             var rating = 0;

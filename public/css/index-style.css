@@ -224,8 +224,15 @@ display: none;
     list-style-type: none;
 }
 /* Route itself*/
+.flush-route-box{
+    position: absolute;
+    top:780px;
+    left:830px;
+    width:80px;
+    height:80px;
+}
 .route-box {
-    width: 860px;
+    width: 780px;
     height: 75px;
     padding: 10px;
     margin-bottom: 10px;
@@ -320,6 +327,15 @@ display: none;
     float:right;
 }
 .edit-comment:hover{
+    cursor: pointer;
+}
+.accept-comment{
+    width:25px;
+    height:25px;
+    margin:3px;
+    float:right;
+}
+.accept-comment:hover{
     cursor: pointer;
 }
 /* Footer Section */

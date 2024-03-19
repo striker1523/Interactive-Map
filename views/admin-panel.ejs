@@ -9,6 +9,7 @@
     <link href="/css/index-style.css" rel="stylesheet" type="text/css">
     <link href="/css/profile.css" rel="stylesheet" type="text/css">
     <link href="/css/comments.css" rel="stylesheet" type="text/css">
+    <link href="/css/admin.css" rel="stylesheet" type="text/css">
 </head>
 
 <body class="profile-body">
@@ -26,17 +27,20 @@
 
     <div class="profile-section">
         <div class="profile-greetings">
-                <h2 class="welcome">Welcome back,&nbsp;<a style="color:#f54b55;"><%= name %></a></h2>
+                <h2 class="welcome">Admin panel</a></h2>
         </div>
         <div class="buttons">
-            <input type="button" class="admin-panel" value="Admin panel" hidden>
-            <input type="button" class="change-password" value="Change password">
-            <form action="/logout?_method=DELETE" method="POST">
-                <button type="submit" class="logout-button"> Logout </button>
-            </form>
+            <input type="button" class="admin-panel" value="Profile">
         </div>
-        <h3 class="activity-title">Your activity:</h3>
-        <div class="Activity-box">
+        <div class="buttons second">
+            <input type="button" class="admin-button deities" value="Deities">
+            <input type="button" class="admin-button objects" value="Objects">
+            <input type="button" class="admin-button Object_deities" value="Object_deities">
+            <input type="button" class="admin-button User" value="User">
+            <input type="button" class="admin-button Comments" value="Comments">
+            <input type="button" class="admin-button Ratings" value="Ratings">
+        </div> 
+        <div class="admin-section">
 
         </div>
     </div>
@@ -49,10 +53,8 @@
         </span>
     </div>
 
-    <script src="/scripts/objectRandom.js"></script>
-    <script src="/scripts/commentHandlers.js"></script>
-    <script src="/scripts/object.js"></script>
-    <script src="/scripts/profileActivity.js"></script>
+
+    <script src="/scripts/profileAdmin.js"></script>
 </body>
 </html>
 

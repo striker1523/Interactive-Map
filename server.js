@@ -9,8 +9,6 @@ const db = require("./database.js")                         // Baza sqlite
 const flash = require('express-flash')
 const session = require('express-session')
 const methodOverride = require('method-override')
-// const cors = require('cors')
-// const fs = require('fs');
 
 const initializePassport = require('./passport-config.js')  // config haseł
 initializePassport(
@@ -56,18 +54,16 @@ app.listen(HTTP_PORT, () => {
 // --- Endpointy
 // Endpoint strony głównej
 app.get("/", checkAuthenticated, (req, res, next) => {
-    res.render('index.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email})
+    res.render('index.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email, user_type: req.user.isAdmin})
 });
 // profile
 app.get("/profile", checkAuthenticated, (req, res, next) => {
-    res.render('profile.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email})
+    res.render('profile.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email, user_type: req.user.isAdmin})
 });
-
-app.post("/profile", checkAuthenticated, passport.authenticate('local',{
-    successRedirect: '/profile',
-    failureRedirect: '/',
-    failureFlash: true
-}))
+// admin
+app.get("/admin", checkAdmin, (req, res, next) => {
+    res.render('admin-panel.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email, user_type: req.user.isAdmin})
+});
 
 // Login
 app.get("/login", checkNotAuthenticated, (req, res, next) => {
@@ -93,7 +89,7 @@ app.post("/register", checkNotAuthenticated, async (req, res, next) => {
             email: req.body.email,
             password : hashedPassword
         }
-        var sql ='INSERT INTO user (name, email, password) VALUES (?,?,?)'
+        var sql ='INSERT INTO user (name, email, password, isAdmin) VALUES (?,?,?,0)'
         var params =[data.nickname, data.email, data.password]
         db.run(sql, params, function (err, result) {
             if (err) {
@@ -139,6 +135,15 @@ function checkNotAuthenticated(req, res, next){
     }
     next()
 }
+function isAdmin(user) {
+    return user.isAdmin === 1;
+}
+function checkAdmin(req, res, next) {
+    if (req.isAuthenticated() && isAdmin(req.user)) {
+        return next();
+    }
+    res.redirect('/profile');
+}
 
 // Wyświetlanie wszystkich obiektów
 app.get("/api/objects", (req, res, next) => {
@@ -149,7 +154,6 @@ app.get("/api/objects", (req, res, next) => {
                 console.error(err);
                 res.status(500).json({ error: 'Internal server error' });
             } else {
-                //console.log(rows); // check
                 res.json(rows); // JSON
             }
         });
@@ -449,6 +453,242 @@ app.get("/api/objects/ratings/average/:obj", (req, res, next) => {
                 res.status(404).json({ error: 'Object not found' });
             } else {
                 res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetl obiekty do tras
+app.get("/api/route/objects/:deityid", (req, res, next) => {
+    try {
+        const deityID = req.params.deityid;
+        var sql = 'SELECT o.object_id, o.name, o.type, o.Latitude, o.Longitude FROM objects o JOIN object_deities od ON o.object_id = od.object_id WHERE od.deity_id = ?';
+        db.all(sql, [deityID], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetl skomentowane obiekty
+app.get("/api/profile/object/comments/:id", (req, res, next) => {
+    try {
+        const userid = req.params.id;
+        var sql = 'SELECT DISTINCT o.object_id, o.name, o.image, o.description FROM objects o JOIN comments c ON o.object_id = c.object_id WHERE user_id = ?';
+        db.all(sql, [userid], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetl komentarze użytkownika dla obiektu
+app.get("/api/profile/comments/:uid/:oid", (req, res, next) => {
+    try {
+        const uid = req.params.uid;
+        const oid = req.params.oid;
+        var sql = 'SELECT c.comment_id, c.user_id, c.content, c.date FROM comments c WHERE user_id = ? AND object_id = ?';
+        db.all(sql, [uid, oid], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Sprawdź czy hasła się zgadzają
+app.get("/api/profile/passwordmatch/:email/:op", (req, res, next) => {
+    try {
+        const uem = req.params.email;
+        const oldpass = req.params.op;
+        var sql = 'SELECT password FROM user WHERE email = ?';
+        db.all(sql, [uem], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                bcrypt.compare(oldpass, rows[0].password)
+                .then((result) => {
+                    res.json({ match: result });
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Zmiana hasła
+app.put("/api/profile/updatepassword/:email", async (req, res, next) => {
+    try {
+        const uemail = req.params.email;
+        const newpassword = req.body.password;
+        const hashedPassword = await bcrypt.hash(newpassword, 10);
+        
+        var sql = 'UPDATE user SET password = ? WHERE email = ?';
+        db.run(sql, [hashedPassword, uemail], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// DO PANELU ADMINA
+//////////////////////////////////////////////////////////////////////////////////////////
+// Wyświetlanie wszystkich obiektów
+app.get("/api/admin/:what", (req, res, next) => {
+    try {
+        const tabela = req.params.what;
+        var sql = `SELECT * FROM ${tabela}`;
+        db.all(sql, [], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// INSERT
+app.post("/api/admin/:table", async (req, res, next) => {
+    try {
+        const table = req.params.table;
+        const newData = req.body;
+
+        var sql = `INSERT INTO ${table} (`;
+        var placeholders = '';
+        var params = [];
+
+        // Tworzenie listy kolumn
+        for (const [key, value] of Object.entries(newData)) {
+            sql += `${key}`;
+            if (key === 'password') {
+                const hashedPassword = await bcrypt.hash(value, 10);
+                params.push(hashedPassword);
+            } else {
+                params.push(value);
+            }
+            placeholders += `?`;
+            if (Object.keys(newData).indexOf(key) < Object.keys(newData).length - 1) {
+                sql += ', ';
+                placeholders += ', ';
+            }
+        }
+
+        sql += `) VALUES (${placeholders})`;
+        db.run(sql, params, function(err) {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ message: 'Record inserted successfully' });
+            }
+        });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update
+app.put("/api/admin/:table/:id/:whatid", async (req, res, next) => {
+    try {
+        const table = req.params.table;
+        const id = req.params.id;
+        const whatid = req.params.whatid
+        const updatedData = req.body;
+
+        var sql = `UPDATE ${table} SET `;
+        var params = [];
+        
+        // Tworzenie listy kolumn
+        for (const [key, value] of Object.entries(updatedData)) {
+            sql += `${key} = ?`;
+            if (key === 'password') {
+                const hashedPassword = await bcrypt.hash(value, 10);
+                params.push(hashedPassword);
+            } else {
+                params.push(value);
+            }
+            if (Object.keys(updatedData).indexOf(key) < Object.keys(updatedData).length - 1) {
+                sql += ', ';
+            }
+        }
+
+        sql += ` WHERE ${whatid} = ?`;
+        params.push(id);
+        db.run(sql, params, function(err) {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ message: 'Record updated successfully' });
+            }
+        });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete
+app.delete("/api/admin/delete/:table/:id/:whatid", (req, res, next) => {
+    try {
+        const table = req.params.table;
+        const id = req.params.id;
+        const whatid = req.params.whatid;
+        var sql = `DELETE FROM ${table} WHERE ${whatid} = ?`;
+        db.run(sql, [id], function(err) {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                if (this.changes === 0) {
+                    res.status(404).json({ error: 'Record not found' });
+                } else {
+                    res.status(200).json({ message: 'Record deleted successfully' });
+                }
             }
         });
     } catch(err){

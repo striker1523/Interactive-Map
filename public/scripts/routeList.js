@@ -22,7 +22,13 @@ $(function() {
     }
 });
 
-
+// Kasowanie całej trasy:
+const deleteRoute = document.querySelector('.flush-route-box');
+deleteRoute.addEventListener('click', function () {
+    waypointsTab.splice(0, waypointsTab.length);
+    updateRoute(map);
+    updateItemsInRoute();
+})
 
 // Umożliwienie scrollowania bez użycia shifta
 const scrollContainer = document.querySelector(".route-box");
@@ -65,9 +71,15 @@ function updateRoute(map){
 // Funkcja do tworzenia listy obiektów pod mapą
 function updateItemsInRoute(objectID, objectName, objectType, objectLat, objectLong, map) {
     var routeBox = document.querySelector('.route-box');
+    deleteRoute.style.display = 'block';
+    if (waypointsTab.length === 1){
+        routeBox.innerHTML = '';
+    }
     if (!waypointsTab.length){
         console.log("Waypoint list is empty.")
         routeBox.innerHTML = '';
+        deleteRoute.style.display = 'none';
+        displaySavedRoutes();
     }else{
         const divbox = document.createElement('div');
         const imgBcg = document.createElement('img');
@@ -123,4 +135,74 @@ function updateItemsInRoute(objectID, objectName, objectType, objectLat, objectL
         divbox.appendChild(imgTrash);
         routeBox.appendChild(divbox);
     }
+}
+
+// Funkcja do wyświetlenia zapisanych tras
+function displaySavedRoutes(){
+    var routeBox = document.querySelector('.route-box');
+    const allRoutes = []
+    const routeNames = [
+        "Hachiman shrines",
+        "Amaterasu shrines",
+        "Ōkuninushi shrines",
+        "Susanoo shrines",
+        "Izanagi shrines",
+    ]
+    const deityIDs = [
+        4, 1, 8, 13, 20
+    ]
+    var index = 0;
+    deityIDs.forEach(e => {
+        fetch(`api/route/objects/${e}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            var route = []
+            data.forEach(e => {
+                route.push(L.latLng(e.Latitude, e.Longitude));
+            });
+            allRoutes.push(route);
+            const divbox = document.createElement('div');
+            const imgBcg = document.createElement('img');
+            const spanName = document.createElement('span');
+            const imgRoute = document.createElement('img');
+
+            divbox.className = `route-item`;
+            imgBcg.className = 'route-item-bcg';
+            spanName.className = 'route-item-name';
+            imgRoute.className = `route-item-trash`;
+
+            imgRoute.addEventListener('click', function () {
+                routeBox.innerHTML = '';
+                waypointsTab.splice(0, waypointsTab.length);
+                waypointsTab = route;
+                updateRoute(map);
+                data.forEach(e => {
+                    updateItemsInRoute(e.object_id, e.name, e.type, e.Latitude, e.Longitude, map);
+                })
+                console.log(waypointsTab);
+            });
+
+            imgBcg.src = '../assets/img/route.png'
+            imgRoute.src = '../assets/img/japan.png'
+            spanName.textContent = routeNames[index];
+            divbox.appendChild(imgBcg);
+            divbox.appendChild(spanName);
+            divbox.appendChild(imgRoute);
+            routeBox.appendChild(divbox);
+            index +=1;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    });
 }

@@ -18,6 +18,8 @@ function readObjectDescription(object_id){
             type, era, year, prefecture, description } = data;
         const objectIdHidden = document.getElementById('obj-id');
         objectIdHidden.value = object_id;
+        const objectImage = document.querySelector('.object-img');
+        objectImage.src = image;
         const objectNameLabel = document.querySelector('.obj-name');
         objectNameLabel.textContent = name;
         const objectDescLabel = document.querySelector('.object-desc');
@@ -201,7 +203,6 @@ function readIfRatingIsAdded(userID, object_id){
             resolve(data); 
         })
         .catch(error => {
-            console.error('Error:', error);
             reject(error);
         });
     });

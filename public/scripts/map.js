@@ -321,6 +321,9 @@ window.addEventListener('load', () => {
     //Wywołanie markerów na mapie
     displayObjectsOnMap(map);
 
+    //Wywołanie zapisanych tras
+    displaySavedRoutes()
+    
     //Wywołanie informacji o losowym obiekcie
     showRandomObject();
 
@@ -372,7 +375,6 @@ window.addEventListener('load', () => {
     // Opóźnienie aby checkboxy się stworzyły
     setTimeout(() => {
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        console.log("Checkboxy: " + checkboxes.length);
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', () => {
                 handleCheckboxChange(event.target);

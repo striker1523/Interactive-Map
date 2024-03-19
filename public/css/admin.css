@@ -1,0 +1,44 @@
+.buttons.second{
+    margin-top:20px;
+}
+.admin-button{
+    width:150px;
+    height:40px;
+    background-color: #f54b55;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 14px;
+    margin: 4px;
+    margin-top:8px;
+    border-radius:10px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    font-weight:700;
+    float:left;
+}
+.admin-button:hover{
+background-color: #c62731;
+}  
+.admin-section{
+    width:100%;
+    height:500px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.submit-button{
+    float:left;
+}
+#modify-button{
+    float:left;
+}
+#cancel-button{
+    float:left;
+}
+label{
+    float:left;
+}
+input[type=text]{
+    float:left;
+}

@@ -17,7 +17,7 @@
 }
 .comment-box::-webkit-scrollbar {
     display: none;
-    }
+}
 .comment-name{
     color:#f54b55;
     margin:5px;
