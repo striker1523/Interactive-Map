@@ -4,25 +4,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Profile</title>
-
     <link href="/css/style.css" rel="stylesheet" type="text/css">
     <link href="/css/index-style.css" rel="stylesheet" type="text/css">
     <link href="/css/profile.css" rel="stylesheet" type="text/css">
     <link href="/css/comments.css" rel="stylesheet" type="text/css">
 </head>
-
 <body class="profile-body">
-
     <h1 class="logo">Interactive Map <br> <a class="logo-move">of Japan</a></h1>
-
     <a href="/" class=""><img src="/assets/img/japan.png" class="profile-img" alt="Profile"></a>
-    
     <h2 class="greetings">Back to map</h2>
     <input type="hidden" id="user-id" value="<%= user_id %>">
     <input type="hidden" id="user-email" value="<%= email %>">
     <input type="hidden" id="user-name" value="<%= name %>">
     <input type="hidden" id="user-type" value="<%= user_type %>">
-
     <div class="profile-section">
         <div class="profile-greetings">
                 <h2 class="welcome">Welcome back,&nbsp;<a style="color:#f54b55;"><%= name %></a></h2>
@@ -37,7 +31,6 @@
         </div>
         <h3 class="activity-title">Your activity:</h3>
         <div class="Activity-box">
-
         </div>
     </div>
     <!-- Stopa -->
@@ -48,7 +41,6 @@
             Author: Bartosz Sobański
         </span>
     </div>
-
     <script src="/scripts/objectRandom.js"></script>
     <script src="/scripts/commentHandlers.js"></script>
     <script src="/scripts/object.js"></script>
