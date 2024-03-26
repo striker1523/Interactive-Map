@@ -33,14 +33,17 @@ function initialize(passport) {
     });
 
     passport.deserializeUser((user_id, done) => {
-        const sql = 'SELECT * FROM user WHERE user_id = ?';
-        db.get(sql, [user_id], (err, row) => {
-            if (err) {
-                return done(err);
-            }
-            done(null, row);
-        });
+    const sql = 'SELECT * FROM user WHERE user_id = ?';
+    db.get(sql, [user_id], (err, row) => {
+        if (err) {
+            return done(err);
+        }
+        if (!row) {
+            return done(null, false); // Zwróć fałsz, jeśli użytkownik nie został znaleziony
+        }
+        done(null, row);
     });
+});
 }
 
 module.exports = initialize

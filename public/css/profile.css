@@ -72,6 +72,26 @@ background-color: rgba(255,255,255,0.5);
 .change-password:hover{
 background-color: #c62731;
 }
+.delete-account{
+    width:150px;
+    height:40px;
+    background-color: #f54b55;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 14px;
+    margin: 4px;
+    margin-top:8px;
+    border-radius:10px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    font-weight:700;
+    float:left;
+}
+.delete-account:hover{
+background-color: #c62731;
+}
 .admin-panel{
     width:150px;
     height:40px;

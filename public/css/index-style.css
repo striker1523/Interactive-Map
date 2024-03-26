@@ -16,7 +16,7 @@ a {
 }
 /* Map Section */
 .map-section{
-    width:880px;
+    width:1130px;
     height:750px;
     background-color:rgba(0, 0, 0, 0.2);
     border-radius:7px;
@@ -27,13 +27,13 @@ a {
     padding:10px;
 }
 .map-box{
-    width:600px;
+    width:880px;
     height:600px;
     border-radius:10px;
     float:left;
 }
 .search-box{
-    width:580px;
+    width:860px;
     padding:10px;
     border:0;
     margin-bottom:10px;
@@ -42,7 +42,7 @@ a {
     float:left;
 }
 .filters-box{
-    width:250px;
+    width:220px;
     height:625px;
     padding:10px;
     margin-bottom:10px;
@@ -114,7 +114,7 @@ a {
 }
 /* Object Section */
 .object-section{
-    width:880px;
+    width:650px;
     height:750px;
     background-color:rgba(0, 0, 0, 0.2);
     border-radius:7px;
@@ -130,7 +130,7 @@ a {
     margin-left:10px;
 }
 .object-name-box{
-    width:calc(100% - 345px);
+    width:calc(100% - 295px);
     height:35px;
     border-radius:10px;
     background-color:rgba(0, 0, 0, 0.2);
@@ -155,7 +155,7 @@ a {
     font-size:14px;
 }
 .object-desc-box{
-    width:515px;
+    width:335px;
     height:380px;
     border-radius:10px;
     padding:10px;
@@ -170,7 +170,7 @@ a {
 display: none;
 }
 .object-det-box{
-    width:335px;
+    width:285px;
     height:450px;
     border-radius:10px;
     background-color:rgba(0, 0, 0, 0.2);
@@ -195,7 +195,7 @@ display: none;
 .object-img{
     width:250px;
     height:250px;
-    margin-left:45px;
+    margin-left:20px;
     border-radius:5px;
     margin-top:10px;
 }
@@ -224,15 +224,22 @@ display: none;
     list-style-type: none;
 }
 /* Route itself*/
-.flush-route-box{
+.addtodb-route-box{
     position: absolute;
     top:780px;
-    left:830px;
-    width:80px;
-    height:80px;
+    left:1104px;
+    width:40px;
+    height:40px;
+}
+.flush-route-box{
+    position: absolute;
+    top:830px;
+    left:1100px;
+    width:40px;
+    height:40px;
 }
 .route-box {
-    width: 780px;
+    width: 1030px;
     height: 75px;
     padding: 10px;
     margin-bottom: 10px;
@@ -279,6 +286,9 @@ display: none;
     margin-top: 5px;
     font-family: Tahoma;
 }
+.user-route-span{
+    color:#f54b55;
+}
 
 .route-item-trash {
     width: 25px;
@@ -288,7 +298,14 @@ display: none;
     right: 3px;
     cursor: pointer;
 }
-
+.route-item-details {
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    bottom: 3px;
+    right: 70px;
+    cursor: pointer;
+}
 .route-item-bcg {
     position: absolute;
     width: 50px;
@@ -353,4 +370,55 @@ display: none;
     color:#fafafa;
     opacity:0.2;
     user-select: none;
+}
+.routeNameModal{
+    width:350px;
+    height:200px;
+    background-color:#fafafa;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    font-family:Tahoma;
+    color:#f54b55;
+    position:absolute;
+    top:350px;
+    left:300px;
+    z-index: 9999;
+    border-radius:15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.routeNameInput{
+    width:240px;
+    padding:10px;
+    border:0;
+    margin-bottom:10px;
+    border-radius:10px;
+    background-color:rgba(0, 0, 0, 0.8);
+    color:#fafafa;
+}
+.row {
+    display: flex;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+}
+.modalButtons{
+    width:130px;
+    height:50px;
+    background-color: #f54b55;
+    border: none;
+    color: white;
+    padding: 8px 32px;
+    text-align: center;
+    font-size: 14px;
+    margin: 4px 2px;
+    margin-top:15px;
+    margin-bottom:10px;
+    border-radius:10px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    font-weight:700;
 }

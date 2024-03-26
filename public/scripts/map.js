@@ -322,7 +322,8 @@ window.addEventListener('load', () => {
     displayObjectsOnMap(map);
 
     //Wywołanie zapisanych tras
-    displaySavedRoutes()
+    displaySavedRoutes();
+    displayUserRoutes();
     
     //Wywołanie informacji o losowym obiekcie
     showRandomObject();

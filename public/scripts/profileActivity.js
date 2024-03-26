@@ -10,6 +10,32 @@ window.addEventListener('load', () => {
           });
     }
 
+    // Usunięcie konta
+    const delAccButton = document.querySelector('.delete-account');
+    delAccButton.addEventListener("click", function(){
+        const userID = document.getElementById('user-id').value;
+        fetch(`/api/accountDelete/${userID}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(error => {
+                throw new Error(error.message || 'Something went wrong');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            location.reload();
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+    });
+
     // Zmiana hasła
     const change_password = document.querySelector('.change-password');
     const divbox = document.querySelector('.Activity-box');

@@ -570,6 +570,147 @@ app.put("/api/profile/updatepassword/:email", async (req, res, next) => {
     }
 });
 
+// Dodanie trasy
+app.post("/api/addroute", (req, res, next) => {
+    try {
+        const { name, uID } = req.body;
+        var sql = 'INSERT INTO routes (route_name, user_id) VALUES (?, ?)';
+        db.run(sql, [name, uID], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Wyświetlanie id trasy po nazwie
+app.get("/api/routename/:name", (req, res, next) => {
+    try {
+        const routeName = req.params.name;
+        var sql = 'SELECT route_id FROM routes WHERE route_name = ?';
+        db.get(sql, [routeName], (err, row) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!row) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(row); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetlanie id obiektu po współrzędnych
+app.get("/api/routeobjectid/:lat/:lng", (req, res, next) => {
+    try {
+        const objLat = req.params.lat;
+        const objLng = req.params.lng;
+        var sql = 'SELECT object_id FROM objects WHERE Latitude = ? AND Longitude = ?';
+        db.get(sql, [objLat, objLng], (err, row) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!row) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(row); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Dodanie obiektów do trasy
+app.post("/api/addrouteobject", (req, res, next) => {
+    try {
+        const { rID, oID } = req.body;
+        var sql = 'INSERT INTO route_objects (route_id, object_id) VALUES (?, ?)';
+        db.run(sql, [rID, oID], (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                res.json({ success: true });
+            }
+        });
+    } catch(err){
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Wyświetl wszystkie trasy użytkownika
+app.get("/api/userroutes/:user_ID", (req, res, next) => {
+    try {
+        const userID = req.params.user_ID;
+        var sql = 'SELECT route_id from routes WHERE user_id = ?';
+        db.all(sql, [userID], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Wyświetl dane obiektów w trasie
+app.get("/api/routecoordinates/:route_ID", (req, res, next) => {
+    try {
+        const routeID = req.params.route_ID;
+        var sql = 'SELECT o.object_id, o.name, o.type, o.Latitude, o.Longitude, r.route_name FROM objects o JOIN route_objects ro ON ro.object_id = o.object_id JOIN routes r ON ro.route_id = r.route_id WHERE r.route_id = ?';
+        db.all(sql, [routeID], (err, rows) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else if (!rows || rows.length === 0) {
+                res.status(404).json({ error: 'Object not found' });
+            } else {
+                res.json(rows); // JSON
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
+// Usunięcie konta
+app.delete("/api/accountDelete/:userID", (req, res, next) => {
+    try {
+        const uID = req.params.userID;
+        var sql = `DELETE FROM user WHERE user_id = ?`;
+        db.run(sql, [uID], function(err) {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: 'Internal server error' });
+            } else {
+                if (this.changes === 0) {
+                    res.status(404).json({ error: 'Record not found' });
+                } else {
+                    res.status(200).json({ message: 'Record deleted successfully' });
+                }
+            }
+        });
+    } catch(err){
+        console.error(err);
+    }
+});
+
 // DO PANELU ADMINA
 //////////////////////////////////////////////////////////////////////////////////////////
 // Wyświetlanie wszystkich obiektów
