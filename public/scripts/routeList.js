@@ -171,30 +171,21 @@ function updateRoute(map){
     if (routingControl){
         map.removeControl(routingControl);
     }
-    routingControl = setTimeout(() => {
-        routingControl = L.Routing.control({
-            router: new L.Routing.osrmv1({
-                language: 'en'
-              }),
-            formatter:  new L.Routing.Formatter({
-                language: 'en'
-            }),
-            language: 'en',
-            waypoints: waypointsTab,
-            collapsible: true,
-            createMarker: function() {},
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
+    routingControl = L.Routing.control({
+        language: 'en',
+        waypoints: waypointsTab,
+        collapsible: true,
+        createMarker: function() {},
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        addWaypoints: false,
+        routeWhileDragging: false,
+        useZoomParameter: false,
+        lineOptions: {
             addWaypoints: false,
-            routeWhileDragging: false,
-            useZoomParameter: false,
-            lineOptions: {
-                addWaypoints: false,
-                styles: [{ color: '#f54b55', weight: 3 }],
-                language: 'en'
-            },
-        }).addTo(map);
-    }, 750);
+            styles: [{ color: '#f54b55', weight: 3 }]
+        },
+    }).addTo(map);
 }
 
 // Funkcja do tworzenia listy obiektów pod mapą
@@ -205,20 +196,25 @@ function updateItemsInRoute(objectID, objectName, objectType, objectLat, objectL
     if (waypointsTab.length === 1){
         routeBox.innerHTML = '';
         addtodbRoute.style.display = 'none';
-        modalToRemove = document.querySelector('.routeNameModal')
     }
     if (waypointsTab.length === 2){
         addtodbRoute.style.display = 'block';
     }
     if (!waypointsTab.length){
-        console.log("Waypoint list is empty.")
         routeBox.innerHTML = '';
         deleteRoute.style.display = 'none';
         addtodbRoute.style.display = 'none';
         displaySavedRoutes();
         displayUserRoutes();
     }else{
-        const divbox = document.createElement('div');
+        const divbox = createRouteDivbox(objectID, objectName, objectType, objectLat, objectLong, map);
+        routeBox.appendChild(divbox);
+    }
+}
+
+// Funkcja do tworzenia kafelka w liście obiektu
+function createRouteDivbox(objectID, objectName, objectType, objectLat, objectLong, map){
+    const divbox = document.createElement('div');
         const imgBcg = document.createElement('img');
         const spanName = document.createElement('span');
         const imgTrash = document.createElement('img');
@@ -253,24 +249,7 @@ function updateItemsInRoute(objectID, objectName, objectType, objectLat, objectL
         imgDetails.addEventListener('click', function () {
             const userID = document.getElementById('user-id').value;
             markers[objectID-1].openPopup();
-            readObjectDescription(objectID);
-            readDeities(objectID);
-            readComments(objectID);
-            readRatings(objectID);
-            readIfRatingIsAdded(userID, objectID)
-            .then(data => {
-                const stars = document.querySelectorAll('.all-stars img');
-
-                var rating = data[0].rating;
-                handleRating(stars, userID, objectID, rating);
-            })
-            .catch(error => {
-                console.error(error);
-                const stars = document.querySelectorAll('.all-stars img');
-
-                var rating = 0;
-                handleRating(stars, userID, objectID, rating);
-            });
+            showDescription(objectID, userID);
         })
 
         let iconType;
@@ -300,8 +279,8 @@ function updateItemsInRoute(objectID, objectName, objectType, objectLat, objectL
         divbox.appendChild(location);
         divbox.appendChild(imgDetails);
         divbox.appendChild(imgTrash);
-        routeBox.appendChild(divbox);
-    }
+
+        return divbox;
 }
 
 // Funkcja do wyświetlenia zapisanych tras
@@ -403,7 +382,6 @@ function displayUserRoutes(){
                 return response.json();
             })
             .then(data => {
-                console.log(data);
                 var route = []
                 data.forEach(e => {
                     route.push(L.latLng(e.Latitude, e.Longitude));

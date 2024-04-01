@@ -11,17 +11,13 @@
     <h1 class="logo">Interactive Map <br> <a class="logo-move">of Japan</a></h1>
     <div class="reglog-container">
         <h1 class="reglog-title">Login</h1>
-        <div class="error-message">
-        <% if (messages.error) {%>
-            <%= messages.error %>
-            <% } %>
-        </div>
+        <div class="error-message"><% if (messages.error) {%><%= messages.error %><% } %></div>
         <form action="/login" method="POST" class="reglog-form-container">
             <div>
-                <input type="email" id="email" name="email" placeholder="email" value="admin@admin" required>
+                <input type="email" id="email" name="email" placeholder="email" value="" required>
             </div>
             <div>
-                <input type="password" id="password" name="password" placeholder="password" value="admin" required>
+                <input type="password" id="password" name="password" placeholder="password" value="" required>
             </div>
             <button type="submit"> Login </button>
         </form>

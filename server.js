@@ -3,14 +3,14 @@ if (process.env.NODE_ENV !== 'production'){
 }
 const express = require("express")
 const app = express()
-const bcrypt = require("bcrypt")                            // Szyfrowanie
+const bcrypt = require("bcrypt")
 const passport = require('passport')                        
-const db = require("./database.js")                         // Baza sqlite
-const flash = require('express-flash')
+const db = require("./database.js")
 const session = require('express-session')
+const flash = require('express-flash')                          
 const methodOverride = require('method-override')
-
-const initializePassport = require('./passport-config.js')  // config haseł
+const bodyParser = require('body-parser');
+const initializePassport = require('./passport-config.js')
 initializePassport(
     passport, 
     email => {
@@ -20,14 +20,11 @@ initializePassport(
                 console.error(err);
                 return null; // Błąd w bazie danych
             }
-            return row; // Zwróć użytkownika z bazy danych lub null, jeśli nie znaleziono
+            return row; // Zwróć użytkownika z bazy danych lub null
         });
     }
 );
-
-// Ustawienia serwera
-const bodyParser = require('body-parser');          // 
-app.use(express.static(__dirname + '/public'));     // Obsługa CSS
+app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(flash());
@@ -39,19 +36,15 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
-// app.use(cors())
 
 app.set('view-engine', 'ejs');
 
-// Port serwera
-const HTTP_PORT = 8000 
+const HTTP_PORT = process.env.PORT
 
-// Start serwera
 app.listen(HTTP_PORT, () => {
     console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
 });
 
-// --- Endpointy
 // Endpoint strony głównej
 app.get("/", checkAuthenticated, (req, res, next) => {
     res.render('index.ejs', {user_id: req.user.user_id, name: req.user.name, email: req.user.email, user_type: req.user.isAdmin})
@@ -83,6 +76,10 @@ app.get("/register", checkNotAuthenticated, (req, res, next) => {
 
 app.post("/register", checkNotAuthenticated, async (req, res, next) => {
     try {
+        const password = req.body.password;
+        if (!password.match(/^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,})/)) {
+            return res.redirect('/register');
+        }
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
         var data = {
             nickname: req.body.nickname,
@@ -93,17 +90,15 @@ app.post("/register", checkNotAuthenticated, async (req, res, next) => {
         var params =[data.nickname, data.email, data.password]
         db.run(sql, params, function (err, result) {
             if (err) {
-                // Obsługa błędu
                 console.error(err);
-                res.redirect('/register'); // Przekierowanie na /register w przypadku błędu
+                res.redirect('/register'); 
             } else {
-                // Pomyślna rejestracja
-                res.redirect('/login'); // Przekierowanie na /login po rejestracji
+                res.redirect('/login'); 
             }
         });
     } catch(err){
         console.error(err);
-        res.redirect('/register'); // Przekierowanie na /register w przypadku błędu rejestracji
+        res.redirect('/register'); 
     }
 });
 
@@ -118,6 +113,12 @@ app.delete('/logout', (req, res, next) => {
     });
 });
 
+// MAPBOX Token
+app.get("/api/mapbox-token", (req, res) => {
+    const Token = process.env.MAPBOX_TOKEN
+    res.json({ Token });
+});
+
 // Redirect
 function checkAuthenticated(req, res, next){
     if (req.isAuthenticated()){
@@ -127,7 +128,7 @@ function checkAuthenticated(req, res, next){
 }
 
 function checkNotAuthenticated(req, res, next){
-    if (req.originalUrl === '/profile') {
+    if (!req.isAuthenticated()) {
         return next();
     }
     if (req.isAuthenticated()){
@@ -268,7 +269,11 @@ app.get("/api/distinct/:what/:from/:order", (req, res, next) => {
 app.get("/api/objects/filters/:whereConditions", (req, res, next) => {
     try {
         const sqlConditions = req.params.whereConditions;
-        var sql = `SELECT o.object_id, o.name, o.religion, o.type, o.era, o.year, o.prefecture, o.postal_code, o.municipality, o.subdivision, o.apartment, o.Latitude, o.Longitude, o.description FROM objects o LEFT JOIN object_deities od ON o.object_id = od.object_id LEFT JOIN deities d ON d.deity_id = od.deity_id WHERE ${sqlConditions}`;
+        var sql = `SELECT o.object_id, o.name, o.religion, o.type, o.era, 
+        o.year, o.prefecture, o.postal_code, o.municipality, o.subdivision, 
+        o.apartment, o.Latitude, o.Longitude, o.description FROM objects o 
+        LEFT JOIN object_deities od ON o.object_id = od.object_id 
+        LEFT JOIN deities d ON d.deity_id = od.deity_id WHERE ${sqlConditions}`;
         db.all(sql, (err, rows) => {
             if (err) {
                 console.error(err);
@@ -481,10 +486,10 @@ app.get("/api/route/objects/:deityid", (req, res, next) => {
 });
 
 // Wyświetl skomentowane obiekty
-app.get("/api/profile/object/comments/:id", (req, res, next) => {
+app.get("/api/profile/object/activity/:id", (req, res, next) => {
     try {
         const userid = req.params.id;
-        var sql = 'SELECT DISTINCT o.object_id, o.name, o.image, o.description FROM objects o JOIN comments c ON o.object_id = c.object_id WHERE user_id = ?';
+        var sql = 'SELECT DISTINCT o.object_id, o.name, o.image, o.description FROM objects o JOIN comments c ON o.object_id = c.object_id JOIN ratings r ON o.object_id = r.object_id WHERE c.user_id = 1 OR r.user_id = ?';
         db.all(sql, [userid], (err, rows) => {
             if (err) {
                 console.error(err);

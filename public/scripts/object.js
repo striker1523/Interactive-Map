@@ -39,6 +39,55 @@ function readObjectDescription(object_id){
     .catch(error => console.error(error));
 }
 
+// Funkcja do stworzenia komentarza
+function createComment(e, userID){
+    const listItem = document.createElement('li');
+    const divbox = document.createElement('div');
+    const span_name = document.createElement('span');
+    const span_date = document.createElement('span');
+    const brl = document.createElement('br');
+    const br2 = document.createElement('br');
+    const span_content = document.createElement('span');
+    listItem.id = 'comment-li'
+    divbox.className = 'comment-box';
+    span_name.className = 'comment-name';
+    span_date.className = 'comment-date';
+    span_content.className = 'comment-content';
+
+    span_name.textContent = `${e.name}`;
+    span_date.textContent = `${e.date}`;
+    span_content.textContent = `${e.content}`;
+
+    divbox.appendChild(span_name);
+    divbox.appendChild(span_date);
+    divbox.appendChild(brl);
+    divbox.appendChild(br2);
+    divbox.appendChild(span_content);
+    if (e.user_id === Number(userID)){
+        // Trash
+        const trashcanIMGforComments = document.createElement('img');
+        trashcanIMGforComments.src = 'assets/img/trashcan.png';
+        trashcanIMGforComments.className = 'delete-comment';
+        var deleteCommentHandler = function(event) {
+            deleteComment(e.comment_id, e.user_id, e.object_id);
+        }
+        trashcanIMGforComments.addEventListener('click', deleteCommentHandler, true);
+        divbox.appendChild(trashcanIMGforComments)
+
+        // Modify
+        const modifyIMGforComments = document.createElement('img');
+        modifyIMGforComments.src = 'assets/img/edit.png';
+        modifyIMGforComments.className = 'edit-comment';
+        var modifyCommentHandler = function(event) {
+            modifyComment(e.comment_id, e.user_id, e.object_id, span_content.textContent);
+        }
+        modifyIMGforComments.addEventListener('click', modifyCommentHandler, true);
+        divbox.appendChild(modifyIMGforComments)
+    }
+    listItem.appendChild(divbox);
+    return listItem;
+}
+
 // Funkcja do uzupełnienia komentarzy
 function readComments(object_id){
     // Pobranie komentarzy
@@ -54,56 +103,12 @@ function readComments(object_id){
     })
     .then(comms => {
         const userID = document.getElementById('user-id').value;
-        // Delete poprzednich
         const comment_list = document.getElementById(`comment-list`);
         while (comment_list.firstChild) {
             comment_list.removeChild(comment_list.firstChild);
         }
         comms.forEach(e => {
-            const listItem = document.createElement('li');
-            const divbox = document.createElement('div');
-            const span_name = document.createElement('span');
-            const span_date = document.createElement('span');
-            const brl = document.createElement('br');
-            const br2 = document.createElement('br');
-            const span_content = document.createElement('span');
-            listItem.id = 'comment-li'
-            divbox.className = 'comment-box';
-            span_name.className = 'comment-name';
-            span_date.className = 'comment-date';
-            span_content.className = 'comment-content';
-
-            span_name.textContent = `${e.name}`;
-            span_date.textContent = `${e.date}`;
-            span_content.textContent = `${e.content}`;
-
-            divbox.appendChild(span_name);
-            divbox.appendChild(span_date);
-            divbox.appendChild(brl);
-            divbox.appendChild(br2);
-            divbox.appendChild(span_content);
-            if (e.user_id === Number(userID)){
-                // Trash
-                const trashcanIMGforComments = document.createElement('img');
-                trashcanIMGforComments.src = 'assets/img/trashcan.png';
-                trashcanIMGforComments.className = 'delete-comment';
-                var deleteCommentHandler = function(event) {
-                    deleteComment(e.comment_id, e.user_id, e.object_id);
-                }
-                trashcanIMGforComments.addEventListener('click', deleteCommentHandler, true);
-                divbox.appendChild(trashcanIMGforComments)
-
-                // Modify
-                const modifyIMGforComments = document.createElement('img');
-                modifyIMGforComments.src = 'assets/img/edit.png';
-                modifyIMGforComments.className = 'edit-comment';
-                var modifyCommentHandler = function(event) {
-                    modifyComment(e.comment_id, e.user_id, e.object_id, span_content.textContent);
-                }
-                modifyIMGforComments.addEventListener('click', modifyCommentHandler, true);
-                divbox.appendChild(modifyIMGforComments)
-            }
-            listItem.appendChild(divbox);
+            const listItem = createComment(e, userID);
             comment_list.appendChild(listItem);
         });
     })

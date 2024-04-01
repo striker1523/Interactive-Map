@@ -18,19 +18,15 @@ let search_bar = document.getElementById('search-input');
 
 // Routing
 let routingControl;
-// let waypointsTab = [
-//     L.latLng(37.70690965, 138.8262160750562),
-//     L.latLng(37.4564259, 139.84048439655868)
-// ];
+
 let waypointsTab = [
 ];
 
-// ---------------------------------------- //
 // Funkcja do zmiany nulli na - 
 function replaceNullsWithDash(obj) {
     for (var key in obj) {
       if (obj[key] === null) {
-        obj[key] = "-";
+        obj[key] = "No information";
       } else if (typeof obj[key] === "object") {
         replaceNullsWithDash(obj[key]);
       }
@@ -169,6 +165,134 @@ function yearChangeForFilters(){
     return [y_from, y_to];
 }
 
+// Funkcja pod PRZYCISK DO WYŚWIETLANIA PEŁNYCH INFORMACJI
+function showDescription(object_id, userID){
+    readObjectDescription(object_id);
+    readDeities(object_id);
+    readComments(object_id);
+    readRatings(object_id);
+    readIfRatingIsAdded(userID, object_id)
+    .then(data => {
+        const stars = document.querySelectorAll('.all-stars img');
+
+        var rating = data[0].rating;
+        handleRating(stars, userID, object_id, rating);
+    })
+    .catch(error => {
+        console.error(error);
+        const stars = document.querySelectorAll('.all-stars img');
+
+        var rating = 0;
+        handleRating(stars, userID, object_id, rating);
+    });
+}
+
+// Funkcja pod PRZYCISK DO TWORZENIA TRASY
+function createRoute(object_id, name, type){
+    fetch(`api/objects/${object_id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('cojes5');
+        return response.json();
+    })
+    .then(data => {
+        const { Latitude, Longitude } = data;
+        for (let i = 0; i < waypointsTab.length; i++) {
+            if (waypointsTab[i].lat === Latitude && waypointsTab[i].lng === Longitude) {
+                var popup = L.popup()
+                .setLatLng([Latitude, Longitude])
+                .setContent("Object already added.")
+                .openOn(map);
+                return;
+            }
+        }
+        waypointsTab.push(L.latLng(Latitude, Longitude));
+        console.log(waypointsTab);
+        
+        updateRoute(map);
+        updateItemsInRoute(object_id, name, type, Latitude, Longitude, map);
+    })
+    .catch(error => console.error(error));
+}
+
+// Funkcja do wybierania ikon
+function chooseIcon(type){
+    let iconType;
+    switch (type) {
+        case 'Shrine':
+            iconType = '../assets/img/icons/icon_shrine.png';
+            break;
+        case 'Castle':
+            iconType = '../assets/img/icons/icon_castle.png';
+            break;
+        case 'Temple':
+            iconType = '../assets/img/icons/icon_temple.png';
+            break;
+        case 'Mausoleum':
+            iconType = '../assets/img/icons/icon_mausoleum.png';
+            break;
+        default:
+            iconType = '../assets/img/icons/icon_default.png';
+    }
+    let Icon = L.icon({
+        iconUrl: iconType,
+        shadowUrl: '../assets/img/icons/marker-shadow.png',
+        iconSize:     [25, 41],
+        shadowSize:   [29, 32],
+        iconAnchor:   [12, 40],
+        shadowAnchor: [10, 32],
+        popupAnchor:  [0, -35]
+    });
+    return Icon;
+}
+
+// Funkcja do tworzenia kontentu popupa
+function createPopup(name, apartment, subdivision, municipality, religion, postal_code, prefecture, type, year, object_id){
+    const popupContent =
+    '<span style="font-weight: bold; color: #f54b55; font-size: 18px;">' + name +'</span><br>'+
+    '<b>Address:</b> '+ apartment +', '+ subdivision +', '+ municipality +', '+ postal_code +', '+ prefecture +'<br>'+
+    '<b>Religion:</b> '+ religion +'<br>'+
+    '<b>Type:</b> '+ type +'<br>'+
+    '<b>Year:</b> '+ year +'<br>'+
+    '<button id="toRoute" class="toRoute-butt">Add to route</button>'+
+    '<button id="details" class="details-butt">Details</button>'+
+    '<span id="popupid" hidden>'+ object_id +'</span>';
+
+    const popup = L.popup({
+        className: 'pop-up',
+        autoPan: true,
+        maxWidth:1000, 
+        maxHeight:1000
+    }).setContent(popupContent);
+    return popup;
+}
+
+// Funkcja do stworzenia mapy
+function displayMap(){
+    fetch('/api/mapbox-token')
+    .then(response => response.json())
+    .then(data => {
+        window.map = L.map('map-id').setView([36.239368, 137.1976891], 8);
+        const mainLayer = 
+        L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=${data.Token}`, 
+        {
+            minZoom: 3,
+            maxZoom: 17,
+            attribution: 'Map data &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+            id: 'mapbox/dark-v10',
+            tileSize: 512,
+            zoomOffset: -1,
+        });
+        mainLayer.addTo(map);
+        displayObjectsOnMap(map);
+    })
+    .catch(error => console.error('Błąd pobierania tokenu:', error));
+}
+
 // Funkcja do stworzenia wszystkich obiektów i ich danych
 function displayObjectsOnMap(map) {
     fetch('/api/objects')
@@ -176,123 +300,56 @@ function displayObjectsOnMap(map) {
         .then(data => {
             replaceNullsWithDash(data);
             data.forEach(row => {
+                const userID = document.getElementById('user-id').value;
                 const { object_id, name, religion, type, year, prefecture, postal_code, 
                     municipality, subdivision, apartment, Latitude, Longitude } = row;
-                let iconType;
-                switch (type) {
-                    case 'Shrine':
-                        iconType = '../assets/img/icons/icon_shrine.png';
-                        break;
-                    case 'Castle':
-                        iconType = '../assets/img/icons/icon_castle.png';
-                        break;
-                    case 'Temple':
-                        iconType = '../assets/img/icons/icon_temple.png';
-                        break;
-                    case 'Mausoleum':
-                        iconType = '../assets/img/icons/icon_mausoleum.png';
-                        break;
-                    default:
-                        iconType = '../assets/img/icons/icon_default.png';
-                }
-                var Icon = L.icon({
-                    iconUrl: iconType,
-                    shadowUrl: '../assets/img/icons/marker-shadow.png',
-                    iconSize:     [25, 41],
-                    shadowSize:   [29, 32],
-                    iconAnchor:   [12, 40],
-                    shadowAnchor: [10, 32], 
-                    popupAnchor:  [0, -35]
-                });
+                let iterator = 0;
 
-                const popupContent =
-                    '<span style="font-weight: bold; color: #f54b55; font-size: 18px;">' + name +'</span><br>'+
-                    '<b>Address:</b> '+ apartment +', '+ subdivision +', '+ municipality +', '+ postal_code +', '+ prefecture +'<br>'+
-                    '<b>Religion:</b> '+ religion +'<br>'+
-                    '<b>Type:</b> '+ type +'<br>'+
-                    '<b>Year:</b> '+ year +'<br>'+
-                    '<button id="toRoute" class="toRoute-butt">Add to route</button>'+
-                    '<button id="details" class="details-butt">Details</button>'+
-                    '<span id="popupid" hidden>'+ object_id +'</span>';
+                const Icon = chooseIcon(type);
 
-                const popup = L.popup({
-                    className: 'pop-up',
-                    autoPan: true,
-                    maxWidth:1000, 
-                    maxHeight:1000
-                }).setContent(popupContent);
+                const popup = createPopup(name, apartment, subdivision, 
+                    municipality, religion, postal_code, prefecture, type, year, object_id)
 
-                let i = 0;
                 const marker = new L.marker([Latitude, Longitude], {icon: Icon}).addTo(map)
                     .bindPopup(popup)
                     .on('popupopen', function(e) {
-                        // PRZYCISK DO WYŚWIETLANIA PEŁNYCH INFORMACJI
-                        const userID = document.getElementById('user-id').value;
                         const detailsButton = e.popup._contentNode.querySelector('#details');
                         detailsButton.addEventListener('click', function() {
-                            const { object_id } = row;
-                            readObjectDescription(object_id);
-                            readDeities(object_id);
-                            readComments(object_id);
-                            readRatings(object_id);
-                            readIfRatingIsAdded(userID, object_id)
-                            .then(data => {
-                                const stars = document.querySelectorAll('.all-stars img');
-
-                                var rating = data[0].rating;
-                                handleRating(stars, userID, object_id, rating);
-                            })
-                            .catch(error => {
-                                console.error(error);
-                                const stars = document.querySelectorAll('.all-stars img');
-
-                                var rating = 0;
-                                handleRating(stars, userID, object_id, rating);
-                            });
+                            showDescription(object_id, userID)
                         });
-
-                        // PRZYCISK DO TWORZENIA TRASY
                         const routeButton = e.popup._contentNode.querySelector('#toRoute');
                         routeButton.addEventListener('click', function() {
-                            //Pobranie danych obiektu na podstawie ID
-                            fetch(`api/objects/${object_id}`, {
-                                method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            })
-                            .then(response => {
-                                if (!response.ok) throw new Error('cojes5');
-                                return response.json();
-                            })
-                            .then(data => {
-                                const { Latitude, Longitude } = data;
-                                for (let i = 0; i < waypointsTab.length; i++) {
-                                    if (waypointsTab[i].lat === Latitude && waypointsTab[i].lng === Longitude) {
-                                        var popup = L.popup()
-                                        .setLatLng([Latitude, Longitude])
-                                        .setContent("Object already added.")
-                                        .openOn(map);
-                                        return;
-                                    }
-                                }
-                                waypointsTab.push(L.latLng(Latitude, Longitude));
-                                console.log(waypointsTab);
-                                
-                                updateRoute(map);
-                                updateItemsInRoute(object_id, name, type, Latitude, Longitude, map);
-                            })
-                            .catch(error => console.error(error));
+                            createRoute(object_id, name, type)
                         });
                     });
-                    markers.push(marker);
-                    map.addLayer(markers[i]);
-                    i++;   
+
+                markers.push(marker);
+                map.addLayer(markers[iterator]);
+                iterator++;   
             });
         })
-        .catch(error => {
-            console.error('Error fetching objects:', error);
+        .catch(error => { console.error('Error fetching objects:', error); });
+}
+
+// Funkcja do wysyłania żądań do endpointu filtrów
+async function filteredObjects(conditions){
+    if (conditions.length > 0) {
+        const response = await fetch(`/api/objects/filters/${conditions}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        for (let i = 0; i < markers.length; i++) {
+            hideMarker(i, map);
+        }
+        data.forEach(item => {
+            showMarker(item.object_id - 1, map);
         });
+    } else {
+        for (let i = 0; i < markers.length; i++) {
+            showMarker(i, map);
+        }
+    }
 }
 
 window.addEventListener('load', () => {
@@ -300,73 +357,30 @@ window.addEventListener('load', () => {
     Notification.requestPermission().then((result) => {
         console.log(result);
     });
-
+    
     //Wyświetlanie bazowej mapy
-    window.map = L.map('map-id').setView([36.239368, 137.1976891], 8);
-
-    const mainLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        minZoom: 3,
-        maxZoom: 17,
-        attribution: 'Map data &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-        id: 'mapbox/dark-v10',
-        tileSize: 512,
-        zoomOffset: -1,
-        accessToken: 'pk.eyJ1Ijoic3RyaWtlcjE1MjMiLCJhIjoiY2x0cHhvNXA3MDA3MDJxbzBqYnFid2tiYyJ9.JwFJBMgdXbOdK57foTIvaQ'
-    });
-    mainLayer.addTo(map);
-
-    //Dodanie trasy
-    //title.textContent = "Route description: ";
-
-    //Wywołanie markerów na mapie
-    displayObjectsOnMap(map);
-
-    //Wywołanie zapisanych tras
+    displayMap()
     displaySavedRoutes();
     displayUserRoutes();
-    
-    //Wywołanie informacji o losowym obiekcie
     showRandomObject();
 
     // Funkcja do obsługi zmiany stanu checkboxa
     async function handleCheckboxChange(checkbox) {
         const value = checkbox.id;
         const column = checkbox.className;
-        // Uzupełnianie tablic o odpowiednie filtry
+        // Uzupełnienie tablic o odpowiednie filtry
         if (checkbox.checked) {
             addFilter(column, value);
         } else {
             removeFilter(column, value);
         }
-        
         const [y_from, y_to] = yearChangeForFilters();
+        // Uzupełnienie SQL
         const conditions = addSqlFilters(y_from, y_to);
-        
         try {
-            if (conditions.length > 0) {
-                const response = await fetch(`/api/objects/filters/${conditions}`);
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-    
-                const data = await response.json();
-    
-                for (let i = 0; i < markers.length; i++) {
-                    hideMarker(i, map);
-                }
-    
-                data.forEach(item => {
-                    showMarker(item.object_id - 1, map);
-                });
-            } else {
-                for (let i = 0; i < markers.length; i++) {
-                    showMarker(i, map);
-                }
-            }
+            filteredObjects(conditions);
         } catch (error) {
-            console.error('There was a problem with your fetch operation:', error);
-            
+            console.error('There was a problem with fetch operation:', error);
             for (let i = 0; i < markers.length; i++) {
                 hideMarker(i, map);
             }
@@ -383,25 +397,35 @@ window.addEventListener('load', () => {
         });
     }, 750);
 
+    // Wyszukiwarka
+    async function handleSearch_barChange(value) {
+        const [y_from, y_to] = yearChangeForFilters();
+        const conditions = addSqlFilters(y_from, y_to, value);
+        try {
+            filteredObjects(conditions);
+        } catch (error) {
+            console.error('There was a problem with fetch operation:', error);
+            for (let i = 0; i < markers.length; i++) {
+                hideMarker(i, map);
+            }
+        }
+    }
+    search_bar.addEventListener('change', () => { handleSearch_barChange(search_bar.value); });
+
     // Funkcja do filtrowania po roku
     async function handleInput_yearChange() {
         const [y_from, y_to] = yearChangeForFilters();
         const conditions = addSqlFilters(y_from, y_to);
-        
         try {
             if (conditions.length > 0) {
                 const response = await fetch(`/api/objects/filters/${conditions}`);
-                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-    
                 const data = await response.json();
-    
                 for (let i = 0; i < markers.length; i++) {
                     hideMarker(i, map);
                 }
-    
                 data.forEach(item => {
                     showMarker(item.object_id - 1, map);
                 });
@@ -412,7 +436,6 @@ window.addEventListener('load', () => {
             }
         } catch (error) {
             console.error('There was a problem with your fetch operation:', error);
-            
             for (let i = 0; i < markers.length; i++) {
                 hideMarker(i, map);
             }
@@ -425,7 +448,6 @@ window.addEventListener('load', () => {
     year_from.addEventListener('input', () => { //Walidacja
         const rangeFromValue = parseFloat(year_from.value);
         const rangeToValue = parseFloat(year_to.value);
-        
         if (rangeFromValue < 0) {
             year_from.value = 0;
         } else if (rangeToValue < rangeFromValue) {
@@ -437,7 +459,6 @@ window.addEventListener('load', () => {
     year_to.addEventListener('input', () => { //Walidacja
         const rangeFromValue = parseFloat(year_from.value);
         const rangeToValue = parseFloat(year_to.value);
-        
         if (rangeToValue > 2024) {
             year_to.value = 2024;
         } else if (rangeToValue < rangeFromValue) {
@@ -445,40 +466,4 @@ window.addEventListener('load', () => {
         }
     });
 
-    // Wyszukiwarka
-    async function handleSearch_barChange(value) {
-        const [y_from, y_to] = yearChangeForFilters();
-        const conditions = addSqlFilters(y_from, y_to, value);
-        
-        try {
-            if (conditions.length > 0) {
-                const response = await fetch(`/api/objects/filters/${conditions}`);
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-    
-                const data = await response.json();
-    
-                for (let i = 0; i < markers.length; i++) {
-                    hideMarker(i, map);
-                }
-    
-                data.forEach(item => {
-                    showMarker(item.object_id - 1, map);
-                });
-            } else {
-                for (let i = 0; i < markers.length; i++) {
-                    showMarker(i, map);
-                }
-            }
-        } catch (error) {
-            console.error('There was a problem with your fetch operation:', error);
-            
-            for (let i = 0; i < markers.length; i++) {
-                hideMarker(i, map);
-            }
-        }
-    }
-    search_bar.addEventListener('change', () => { handleSearch_barChange(search_bar.value); });
 });
