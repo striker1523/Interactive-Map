@@ -6,6 +6,8 @@ Engineering thesis project at the West Pomeranian University of Technology
 Web application featuring an interactive map with marked and described objects from Japanese culture and mythology.
 In addition to the "presentation" layer itself, the user can create routes, rate and comment on the objects on the map.
 
+![jmap](https://i.imgur.com/g1T7FXh.png)
+
 ## Technologies and tools:
 - Express.js: Server, handling HTTP requests, providing endpoints for data retrieval.
 
